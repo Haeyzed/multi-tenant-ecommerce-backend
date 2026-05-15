@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Http\Controllers\Api\Central;
+
+use App\Http\Controllers\Controller;
+use App\Contracts\Central\PlanServiceInterface;
+use App\DTOs\Central\PlanDTO;
+use App\Http\Requests\CreatePlanRequest;
+use App\Http\Requests\UpdatePlanRequest;
+use App\Models\Central\Plan;
+use App\Http\Resources\Central\PlanResource;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class PlanController extends Controller
+{
+    /**
+     * @param PlanServiceInterface $planService
+     */
+    public function __construct(
+        private readonly PlanServiceInterface $planService
+    ) {}
+
+    /**
+     * Get all plans.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $plans = $this->planService->getAllPlans(
+            $request->all(),
+            $request->input('per_page', 15)
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plans retrieved successfully',
+            'data' => PlanResource::collection($plans),
+            'meta' => [
+                'current_page' => $plans->currentPage(),
+                'per_page' => $plans->perPage(),
+                'total' => $plans->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Get active plans for dropdown.
+     *
+     * @return JsonResponse
+     */
+    public function dropdown(): JsonResponse
+    {
+        $plans = $this->planService->getActivePlansForDropdown();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Active plans retrieved successfully',
+            'data' => $plans,
+        ]);
+    }
+
+    /**
+     * Create a new plan.
+     *
+     * @param CreatePlanRequest $request
+     * @return JsonResponse
+     */
+    public function store(CreatePlanRequest $request): JsonResponse
+    {
+        $dto = PlanDTO::fromRequest($request->validated());
+        $plan = $this->planService->createPlan($dto);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plan created successfully',
+            'data' => new PlanResource($plan)
+        ], 201);
+    }
+
+    /**
+     * Display the specified plan.
+     *
+     * @param Plan $plan
+     * @return JsonResponse
+     */
+    public function show(Plan $plan): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Plan retrieved successfully',
+            'data' => new PlanResource($plan)
+        ]);
+    }
+
+    /**
+     * Update the specified plan.
+     *
+     * @param UpdatePlanRequest $request
+     * @param Plan $plan
+     * @return JsonResponse
+     */
+    public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
+    {
+        $dto = PlanDTO::fromRequest($request->validated());
+        $updatedPlan = $this->planService->updatePlan($plan, $dto);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plan updated successfully',
+            'data' => new PlanResource($updatedPlan)
+        ]);
+    }
+
+    /**
+     * Remove the specified plan.
+     *
+     * @param Plan $plan
+     * @return JsonResponse
+     */
+    public function destroy(Plan $plan): JsonResponse
+    {
+        $this->planService->deletePlan($plan);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plan deleted successfully'
+        ]);
+    }
+}

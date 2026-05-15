@@ -2,8 +2,18 @@
 
 namespace App\DTOs\Tenant;
 
+use Illuminate\Support\Facades\Hash;
+
 readonly class UserDTO
 {
+    /**
+     * @param string $name
+     * @param string $email
+     * @param string|null $phone
+     * @param string $password
+     * @param string|null $role
+     * @param bool $is_active
+     */
     public function __construct(
         public string $name,
         public string $email,
@@ -13,6 +23,10 @@ readonly class UserDTO
         public bool $is_active = true,
     ) {}
 
+    /**
+     * @param array $data
+     * @return self
+     */
     public static function fromRequest(array $data): self
     {
         return new self(
@@ -25,13 +39,16 @@ readonly class UserDTO
         );
     }
 
+    /**
+     * @return array
+     */
     public function toArray(): array
     {
         return [
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'password' => bcrypt($this->password),
+            'password' => Hash::make($this->password),
             'is_active' => $this->is_active,
         ];
     }

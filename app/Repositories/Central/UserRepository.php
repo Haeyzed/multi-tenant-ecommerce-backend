@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repositories\Central;
 
 use App\Models\Central\User;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,36 +19,23 @@ class UserRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(User::class)
-            ->allowedFilters(
+            ->allowedFilters([
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('email'),
-                AllowedFilter::exact('is_active'),
-            )
-            ->allowedSorts('name', 'created_at', 'email')
-            ->with('roles')
+            ])
+            ->allowedSorts('name', 'created_at')
             ->paginate($perPage);
     }
 
     /**
-     * Find a user by ID with associated roles and permissions.
+     * Find a user by ID.
      *
      * @param string $id
      * @return User|null
      */
     public function findById(string $id): ?User
     {
-        return User::with('roles', 'permissions')->find($id);
-    }
-
-    /**
-     * Find a user by email.
-     *
-     * @param string $email
-     * @return User|null
-     */
-    public function findByEmail(string $email): ?User
-    {
-        return User::query()->where('email', $email)->first();
+        return User::find($id);
     }
 
     /**

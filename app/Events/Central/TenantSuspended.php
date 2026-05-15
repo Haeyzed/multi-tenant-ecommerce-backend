@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\Central;
 
 use App\Models\Central\Tenant;
 use Illuminate\Broadcasting\Channel;
@@ -9,7 +9,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TenantCreated
+class TenantSuspended
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 

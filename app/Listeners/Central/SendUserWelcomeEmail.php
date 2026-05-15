@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Listeners\Central;
 
-use App\Events\UserCreated;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Events\Central\UserCreated;
+use App\Notifications\Central\UserWelcomeNotification;
 
 class SendUserWelcomeEmail
 {

@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\Central;
 
-use App\Models\Central\Tenant;
+use App\Models\Central\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TenantSuspended
+class UserCreated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -17,7 +17,7 @@ class TenantSuspended
      * Create a new event instance.
      */
     public function __construct(
-        public readonly Tenant $tenant
+        public readonly User $user
     )
     {
         //

@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Listeners\Central;
 
-use App\Events\TenantCreated;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Events\Central\TenantCreated;
+use App\Notifications\Central\TenantWelcomeNotification;
 use Illuminate\Support\Facades\Notification;
 
 class SendTenantWelcomeEmail

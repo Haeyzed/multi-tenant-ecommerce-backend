@@ -2,9 +2,11 @@
 
 namespace App\Models\Central;
 
-use App\Enums\TenantStatus;
+use App\Enums\Central\TenantStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
@@ -26,7 +28,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'email',
         'phone',
         'status',
-        'plan',
+        'plan_id',
         'trial_ends_at',
         'data',
     ];
@@ -58,7 +60,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'email',
             'phone',
             'status',
-            'plan',
+            'plan_id',
             'trial_ends_at',
         ];
     }
@@ -93,5 +95,23 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function activate(): void
     {
         $this->update(['status' => TenantStatus::ACTIVE]);
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 }
