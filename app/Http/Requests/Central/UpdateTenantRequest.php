@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Central;
 
+use App\Enums\TenantStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateUserRequest extends FormRequest
+class UpdateTenantRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,11 +26,12 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($this->route('user'))],
+            'email' => ['sometimes', 'email', Rule::unique('tenants', 'email')->ignore($this->route('tenant'))],
             'phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'role' => ['nullable', 'string', 'exists:roles,name'],
-            'is_active' => ['nullable', 'boolean'],
+            'domain' => ['sometimes', 'string', Rule::unique('domains', 'domain')->ignore($this->route('tenant'), 'tenant_id'), 'regex:/^[a-z0-9-]+$/'],
+            'status' => ['sometimes', Rule::enum(TenantStatus::class)],
+            'plan' => ['sometimes', 'string', 'in:basic,premium,enterprise'],
+            'data' => ['nullable', 'array'],
         ];
     }
 }

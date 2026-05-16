@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Central;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class TenantResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,10 +19,11 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'is_active' => $this->is_active,
-            'email_verified_at' => $this->email_verified_at?->toDateTimeString(),
-            'roles' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
-            'permissions' => $this->whenLoaded('permissions', fn() => $this->permissions->pluck('name')),
+            'status' => $this->status->value,
+            'status_label' => $this->status->label(),
+            'plan' => $this->plan,
+            'trial_ends_at' => $this->trial_ends_at?->toDateTimeString(),
+            'domains' => DomainResource::collection($this->whenLoaded('domains')),
             'created_at' => $this->created_at->toDateTimeString(),
             'updated_at' => $this->updated_at->toDateTimeString(),
         ];

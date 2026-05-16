@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Central\User;
-use Database\Seeders\Central\PlanTableSeeder;
-use Database\Seeders\Central\SettingTableSeeder;
-use Database\Seeders\Central\TenantTableSeeder;
+use Database\Seeders\Central\NotificationSeeder;
+use Database\Seeders\Central\PlanSeeder;
+use Database\Seeders\Central\SettingSeeder;
+use Database\Seeders\Central\TenantSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -19,9 +20,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            SettingTableSeeder::class,
-            PlanTableSeeder::class,
-            TenantTableSeeder::class,
+            PlanSeeder::class,
+            SettingSeeder::class,
+            TenantSeeder::class,
+            NotificationSeeder::class,
         ]);
         // User::factory(10)->create();
 

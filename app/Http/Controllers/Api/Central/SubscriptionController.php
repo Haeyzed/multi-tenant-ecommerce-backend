@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\Central;
 
-use App\Http\Controllers\Controller;
 use App\Contracts\Central\SubscriptionServiceInterface;
-use App\Http\Requests\CreateSubscriptionRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\CreateSubscriptionRequest;
 use App\Models\Central\Subscription;
 use App\Models\Central\Tenant;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Exception;
 
 class SubscriptionController extends Controller
 {

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\Central;
 use App\Contracts\Central\TenantServiceInterface;
 use App\DTOs\Central\TenantDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateTenantRequest;
-use App\Http\Requests\UpdateTenantRequest;
-use App\Http\Resources\TenantResource;
+use App\Http\Requests\Central\CreateTenantRequest;
+use App\Http\Requests\Central\UpdateTenantRequest;
+use App\Http\Resources\Central\TenantResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

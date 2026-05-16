@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Central;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateSubscriptionRequest extends FormRequest
+class CreatePlanRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,11 @@ class CreateSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'plan_id' => ['required', 'exists:plans,id'],
-            'payment_gateway' => ['required', 'string', 'in:paystack,flutterwave,stripe,cash_on_delivery'],
-            'transaction_id' => ['nullable', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'unique:plans,name'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'features' => ['nullable', 'array'],
+            'limits' => ['nullable', 'array'],
+            'is_active' => ['boolean'],
         ];
     }
 }

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\Tenant;
 use App\Contracts\Central\UserServiceInterface;
 use App\DTOs\Central\UserDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateUserRequest;
-use App\Http\Requests\UpdateUserRequest;
-use App\Http\Resources\UserResource;
+use App\Http\Requests\Central\CreateUserRequest;
+use App\Http\Requests\Central\UpdateUserRequest;
+use App\Http\Resources\Central\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

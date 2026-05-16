@@ -2,11 +2,11 @@
 
 namespace App\Services\Tenant;
 
-use App\Contracts\Central\UserServiceInterface;
-use App\DTOs\Central\UserDTO;
-use App\Events\Central\UserCreated;
-use App\Models\Central\User;
-use App\Repositories\UserRepository;
+use App\Contracts\Tenant\UserServiceInterface;
+use App\DTOs\Tenant\UserDTO;
+use App\Events\Tenant\UserCreated;
+use App\Models\Tenant\User;
+use App\Repositories\Tenant\UserRepository;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;

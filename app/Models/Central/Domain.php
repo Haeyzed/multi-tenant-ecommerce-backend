@@ -5,6 +5,10 @@ namespace App\Models\Central;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Stancl\Tenancy\Database\Models\Domain as BaseDomain;
 
+/**
+ * Domain model for central database.
+ *
+ */
 class Domain extends BaseDomain
 {
     /**

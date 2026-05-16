@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Central;
 
 use App\Contracts\Central\TenantServiceInterface;
@@ -7,20 +9,31 @@ use App\DTOs\Central\TenantDTO;
 use App\Events\Central\TenantCreated;
 use App\Events\Central\TenantSuspended;
 use App\Models\Central\Tenant;
+use App\Models\Tenant\User;
 use App\Repositories\Central\TenantRepository;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Throwable;
 
+/**
+ * Class TenantService
+ *
+ * Handles tenant lifecycle management including creation, updates,
+ * suspension, and activation. Automatically provisions tenant databases,
+ * runs migrations, seeds default settings, and creates an admin user.
+ *
+ * @package App\Services\Central
+ */
 readonly class TenantService implements TenantServiceInterface
 {
     /**
      * TenantService constructor.
      *
-     * @param TenantRepository $repository
+     * @param TenantRepository $repository Repository for tenant data access
      */
     public function __construct(
         private TenantRepository $repository
@@ -29,9 +42,9 @@ readonly class TenantService implements TenantServiceInterface
     /**
      * Get all tenants with optional filters and pagination.
      *
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
+     * @param array $filters Query filters for tenant listing
+     * @param int $perPage Number of items per page
+     * @return LengthAwarePaginator Paginated tenant collection
      */
     public function getAllTenants(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -41,8 +54,8 @@ readonly class TenantService implements TenantServiceInterface
     /**
      * Retrieve a tenant by its ID.
      *
-     * @param string $id
-     * @return Tenant|null
+     * @param string $id The tenant UUID
+     * @return Tenant|null The tenant instance or null if not found
      */
     public function getTenantById(string $id): ?Tenant
     {
@@ -50,42 +63,77 @@ readonly class TenantService implements TenantServiceInterface
     }
 
     /**
-     * Create a new tenant.
-     * 1. Create the tenant
-     * 2. Create a domain for the tenant
-     * 3. Run migrations for the tenant
+     * Create a new tenant with an admin user.
      *
-     * @throws Throwable
+     * Steps:
+     * 1. Create a tenant record in a central database
+     * 2. Create a primary domain for the tenant
+     * 3. Run tenant migrations and seed default settings
+     * 4. Generate or use the provided admin password
+     * 5. Create a tenant admin user and assign a role
+     * 6. Fire TenantCreated event to send welcome emails
+     *
+     * @param TenantDTO $dto Data transfer object containing tenant and admin details
+     * @return Tenant The created tenant with loaded domains
+     * @throws Throwable When database transaction fails
      */
     public function createTenant(TenantDTO $dto): Tenant
     {
         return DB::transaction(function () use ($dto) {
+            // 1. Create tenant
             $tenant = $this->repository->create([
                 'id' => Str::uuid()->toString(),
                 ...$dto->toArray(),
             ]);
 
+            // 2. Create primary domain
             $tenant->domains()->create([
                 'domain' => $dto->domain,
                 'is_primary' => true,
             ]);
 
+            // 3. Run tenant migrations and seed default settings
             $tenant->run(function () {
-                Artisan::call('migrate', ['--path' => 'database/migrations/tenant', '--force' => true]);
+                Artisan::call('migrate', [
+                    '--path' => 'database/migrations/tenant',
+                    '--force' => true,
+                ]);
+                Artisan::call('db:seed', [
+                    '--class' => 'Tenant\\SettingSeeder',
+                    '--force' => true,
+                ]);
             });
 
-            event(new TenantCreated($tenant));
+            // 4. Generate or use the provided password
+            $plainPassword = $dto->adminPassword ?? $this->generateSecurePassword();
 
-            return $tenant->fresh('domains');
+            // 5. Create tenant admin user
+            $tenant->run(function () use ($tenant, $dto, $plainPassword) {
+                $user = User::query()->create([
+                    'name' => $dto->adminName,
+                    'email' => $dto->adminEmail,
+                    'password' => Hash::make($plainPassword),
+                    'email_verified_at' => now(),
+                ]);
+
+                $user->assignRole('admin');
+
+                // 6. Fire event with credentials for email notification
+                event(new TenantCreated($tenant, $user, $plainPassword));
+            });
+
+            return $tenant->fresh(['domains']);
         });
     }
 
     /**
      * Update an existing tenant.
-     * 1. Find the tenant by ID
-     * 2. Update the tenant details
-     * 3. Refresh the tenant with updated data
-     * @throws Throwable
+     *
+     * @param string $id The tenant UUID
+     * @param TenantDTO $dto Updated tenant data
+     * @return Tenant The updated tenant instance
+     * @throws Exception When tenant is not found
+     * @throws Throwable When database transaction fails
      */
     public function updateTenant(string $id, TenantDTO $dto): Tenant
     {
@@ -103,10 +151,11 @@ readonly class TenantService implements TenantServiceInterface
 
     /**
      * Delete a tenant by its ID.
-     * 1. Find the tenant by ID
-     * 2. Delete the tenant
      *
-     * @throws Throwable
+     * @param string $id The tenant UUID
+     * @return bool True if deletion was successful
+     * @throws Exception When tenant is not found
+     * @throws Throwable When database transaction fails
      */
     public function deleteTenant(string $id): bool
     {
@@ -123,11 +172,12 @@ readonly class TenantService implements TenantServiceInterface
 
     /**
      * Suspend a tenant by its ID.
-     * 1. Find the tenant by ID
-     * 2. Suspend the tenant
-     * 3. Fire the TenantSuspended event
      *
-     * @throws Exception
+     * Prevents tenant access while preserving all data.
+     *
+     * @param string $id The tenant UUID
+     * @return Tenant The suspended tenant instance
+     * @throws Exception When tenant is not found
      */
     public function suspendTenant(string $id): Tenant
     {
@@ -144,11 +194,11 @@ readonly class TenantService implements TenantServiceInterface
     }
 
     /**
-     * Activate a tenant by its ID.
-     * 1. Find the tenant by ID
-     * 2. Activate the tenant
+     * Activate a previously suspended tenant.
      *
-     * @throws Exception
+     * @param string $id The tenant UUID
+     * @return Tenant The activated tenant instance
+     * @throws Exception When tenant is not found
      */
     public function activateTenant(string $id): Tenant
     {
@@ -161,5 +211,17 @@ readonly class TenantService implements TenantServiceInterface
         $tenant->activate();
 
         return $tenant;
+    }
+
+    /**
+     * Generate a cryptographically secure random password.
+     *
+     * Creates a 12-character password with a mixed case, numbers, and symbols.
+     *
+     * @return string The generated password
+     */
+    private function generateSecurePassword(): string
+    {
+        return Str::random(12);
     }
 }

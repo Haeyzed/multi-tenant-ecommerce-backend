@@ -5,7 +5,7 @@ namespace Database\Seeders\Central;
 use App\Models\Central\Plan;
 use Illuminate\Database\Seeder;
 
-class PlanTableSeeder extends Seeder
+class PlanSeeder extends Seeder
 {
     public function run(): void
     {

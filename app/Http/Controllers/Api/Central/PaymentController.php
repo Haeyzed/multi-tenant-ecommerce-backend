@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\Central;
 
-use App\Http\Controllers\Controller;
 use App\Contracts\Central\PaymentServiceInterface;
-use App\Http\Requests\ProcessPaymentRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Central\ProcessPaymentRequest;
 use App\Models\Central\Invoice;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Exception;
 
 class PaymentController extends Controller
 {

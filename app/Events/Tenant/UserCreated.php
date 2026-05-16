@@ -1,10 +1,7 @@
 <?php
 
-declare(strict_types=1);
+namespace App\Events\Tenant;
 
-namespace App\Events\Central;
-
-use App\Models\Central\Tenant;
 use App\Models\Tenant\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -12,22 +9,19 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class TenantCreated
+class UserCreated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
      * Create a new event instance.
-     *
-     * @param Tenant $tenant The created tenant
-     * @param User $user The tenant admin user
-     * @param string $plainPassword The generated plain text password
      */
     public function __construct(
-        public readonly Tenant $tenant,
-        public readonly User $user,
-        public readonly string $plainPassword
-    ) {}
+        public readonly User $user
+    )
+    {
+        //
+    }
 
     /**
      * Get the channels the event should broadcast on.
@@ -37,7 +31,7 @@ class TenantCreated
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('tenant.' . $this->tenant->id),
+            new PrivateChannel('channel-name'),
         ];
     }
 }

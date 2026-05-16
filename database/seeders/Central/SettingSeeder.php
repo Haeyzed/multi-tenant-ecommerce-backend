@@ -5,11 +5,11 @@ namespace Database\Seeders\Central;
 use App\Models\Central\Setting;
 use Illuminate\Database\Seeder;
 
-class SettingTableSeeder extends Seeder
+class SettingSeeder extends Seeder
 {
     public function run(): void
     {
-        Setting::create([
+        Setting::query()->create([
             'site_name' => 'Multi-Tenant E-Commerce',
             'support_email' => 'support@example.com',
             'currency' => 'USD',
