@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Central;
 
 use App\Contracts\Central\UserServiceInterface;
@@ -9,25 +11,33 @@ use App\Repositories\Central\UserRepository;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Throwable;
 
+/**
+ * Class UserService
+ *
+ * Handles user CRUD operations with role and permission management.
+ *
+ * @package App\Services\Central
+ */
 readonly class UserService implements UserServiceInterface
 {
     /**
      * UserService constructor.
      *
-     * @param UserRepository $repository
+     * @param UserRepository $repository User data repository
      */
     public function __construct(
         private UserRepository $repository
     ) {}
 
     /**
-     * Get all users with optional filters and pagination.
+     * Get all users with pagination.
      *
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
+     * @param array $filters Query filters
+     * @param int $perPage Items per page
+     * @return LengthAwarePaginator Paginated users
      */
     public function getAllUsers(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
@@ -35,36 +45,48 @@ readonly class UserService implements UserServiceInterface
     }
 
     /**
-     * Retrieve a user by its ID.
+     * Get user by ID with roles and permissions.
      *
-     * @param string $id
-     * @return User|null
+     * @param string $id User ID
+     * @return User|null User instance or null
      */
     public function getUserById(string $id): ?User
     {
-        return $this->repository->findById($id);
+        $user = $this->repository->findById($id);
+        $user?->load(['roles', 'permissions']);
+
+        return $user;
     }
 
     /**
-     * Create a new user.
+     * Create new user with role.
      *
-     * @param UserDTO $dto
-     * @return User
+     * @param UserDTO $dto User data
+     * @return User Created user
      * @throws Throwable
      */
     public function createUser(UserDTO $dto): User
     {
         return DB::transaction(function () use ($dto) {
-            return $this->repository->create($dto->toArray());
+            $data = $dto->toArray();
+            $data['password'] = Hash::make($dto->password);
+
+            $user = $this->repository->create($data);
+
+            if ($dto->role) {
+                $user->assignRole($dto->role);
+            }
+
+            return $user->fresh(['roles', 'permissions']);
         });
     }
 
     /**
-     * Update an existing user.
+     * Update user details.
      *
-     * @param string $id
-     * @param UserDTO $dto
-     * @return User
+     * @param string $id User ID
+     * @param UserDTO $dto Update data
+     * @return User Updated user
      * @throws Throwable
      */
     public function updateUser(string $id, UserDTO $dto): User
@@ -76,15 +98,24 @@ readonly class UserService implements UserServiceInterface
         }
 
         return DB::transaction(function () use ($user, $dto) {
-            return $this->repository->update($user, $dto->toArray());
+            $data = $dto->toArray();
+
+            // Only hash password if provided
+            if (!empty($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
+            }
+
+            return $this->repository->update($user, $data);
         });
     }
 
     /**
-     * Delete a user by its ID.
+     * Delete user.
      *
-     * @param string $id
-     * @return bool
+     * @param string $id User ID
+     * @return bool True if deleted
      * @throws Throwable
      */
     public function deleteUser(string $id): bool
@@ -96,7 +127,32 @@ readonly class UserService implements UserServiceInterface
         }
 
         return DB::transaction(function () use ($user) {
+            // Revoke all roles and permissions first
+            $user->roles()->detach();
+            $user->permissions()->detach();
+
             return $this->repository->delete($user);
         });
+    }
+
+    /**
+     * Assign a role to a user.
+     *
+     * @param string $userId User ID
+     * @param string $role Role name
+     * @return User Updated user
+     * @throws Exception
+     */
+    public function assignRole(string $userId, string $role): User
+    {
+        $user = $this->repository->findById($userId);
+
+        if (!$user) {
+            throw new Exception('User not found');
+        }
+
+        $user->syncRoles([$role]);
+
+        return $user->fresh('roles');
     }
 }

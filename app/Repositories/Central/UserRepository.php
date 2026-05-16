@@ -19,10 +19,10 @@ class UserRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(User::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('email'),
-            ])
+            )
             ->allowedSorts('name', 'created_at')
             ->paginate($perPage);
     }
@@ -35,7 +35,7 @@ class UserRepository
      */
     public function findById(string $id): ?User
     {
-        return User::find($id);
+        return User::query()->find($id);
     }
 
     /**

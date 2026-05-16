@@ -6,11 +6,13 @@ namespace App\Http\Requests\Central;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * Class CreateUserRequest
  *
- * Validates central platform user creation.
+ * Validates central platform user creation data.
+ * Supports role assignment and direct permissions.
  *
  * @package App\Http\Requests\Central
  */
@@ -60,12 +62,12 @@ class CreateUserRequest extends FormRequest
              * @var string $password
              * @example "SecureP@ss123!"
              */
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
 
             /**
-             * The role to assign to the user.
+             * The Spatie role to assign.
              * @var string|null $role
-             * @example "super_admin"
+             * @example "admin"
              */
             'role' => ['nullable', 'string', 'exists:roles,name'],
 
@@ -75,6 +77,45 @@ class CreateUserRequest extends FormRequest
              * @example true
              */
             'is_active' => ['nullable', 'boolean'],
+
+            /**
+             * Direct permissions to assign beyond role permissions.
+             * @var array<string>|null $permissions
+             * @example ["tenants.manage", "plans.create"]
+             */
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['string', 'exists:permissions,name'],
         ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'full name',
+            'email' => 'email address',
+            'phone' => 'phone number',
+            'password' => 'password',
+            'role' => 'user role',
+            'is_active' => 'account status',
+            'permissions' => 'permissions',
+            'permissions.*' => 'permission',
+        ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email')) {
+            $this->merge([
+                'email' => strtolower(trim($this->email)),
+            ]);
+        }
     }
 }

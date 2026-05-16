@@ -9,7 +9,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Setting extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
 
     /**
      * @var array<string>
@@ -37,13 +37,5 @@ class Setting extends Model
             'trial_days' => 'integer',
             'default_plan_id' => 'integer',
         ];
-    }
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logFillable()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
     }
 }

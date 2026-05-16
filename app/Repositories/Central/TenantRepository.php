@@ -19,12 +19,12 @@ class TenantRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(Tenant::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('status'),
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('email'),
                 'plan',
-            ])
+            )
             ->allowedSorts('name', 'created_at', 'status')
             ->with('domains')
             ->paginate($perPage);

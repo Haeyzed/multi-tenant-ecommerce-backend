@@ -98,8 +98,9 @@ readonly class TenantService implements TenantServiceInterface
                     '--path' => 'database/migrations/tenant',
                     '--force' => true,
                 ]);
+
                 Artisan::call('db:seed', [
-                    '--class' => 'Tenant\\SettingSeeder',
+                    '--class' => 'Database\\Seeders\\Tenant\\SettingSeeder',
                     '--force' => true,
                 ]);
             });

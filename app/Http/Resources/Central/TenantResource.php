@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Central;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
@@ -69,54 +70,10 @@ class TenantResource extends JsonResource
 
             /**
              * The assigned subscription plan.
-             * @var array<string, mixed>|null $plan
-             * @example {"id": 2, "name": "Premium Plan", "price": 49.99}
+             * @var PlanResource|null $plan
+             * @example {"id": 1, "name": "Basic Plan", "price": 9.99, "features": ["unlimited_products"]}
              */
-            'plan' => $this->whenLoaded('plan', function () {
-                return [
-                    /**
-                     * The plan unique identifier.
-                     * @var int $id
-                     * @example 2
-                     */
-                    'id' => $this->plan->id,
-
-                    /**
-                     * The plan display name.
-                     * @var string $name
-                     * @example "Premium Plan"
-                     */
-                    'name' => $this->plan->name,
-
-                    /**
-                     * The monthly subscription price.
-                     * @var float $price
-                     * @example 49.99
-                     */
-                    'price' => (float) $this->plan->price,
-
-                    /**
-                     * List of included features.
-                     * @var array<string>|null $features
-                     * @example ["unlimited_products", "advanced_analytics", "priority_support"]
-                     */
-                    'features' => $this->plan->features,
-
-                    /**
-                     * Usage limits for the plan.
-                     * @var array<string, int>|null $limits
-                     * @example {"products": 100, "staff": 5, "storage_gb": 10}
-                     */
-                    'limits' => $this->plan->limits,
-
-                    /**
-                     * Whether the plan is currently available.
-                     * @var bool $is_active
-                     * @example true
-                     */
-                    'is_active' => (bool) $this->plan->is_active,
-                ];
-            }),
+            'plan' => $this->whenLoaded('plan', fn () => new PlanResource($this->plan)),
 
             /**
              * The trial period end date.
@@ -127,7 +84,7 @@ class TenantResource extends JsonResource
 
             /**
              * The tenant associated domains.
-             * @var \Illuminate\Http\Resources\Json\AnonymousResourceCollection|null $domains
+             * @var AnonymousResourceCollection|null $domains
              */
             'domains' => DomainResource::collection($this->whenLoaded('domains')),
 
