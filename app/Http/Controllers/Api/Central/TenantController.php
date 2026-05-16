@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Central;
 
 use App\Contracts\Central\TenantServiceInterface;
@@ -11,12 +13,34 @@ use App\Http\Resources\Central\TenantResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Class TenantController
+ *
+ * Handles API endpoints for central tenant management.
+ * Provides CRUD operations, suspension, and activation
+ * for multi-tenant platform administration.
+ *
+ * @package App\Http\Controllers\Api\Central
+ */
 class TenantController extends Controller
 {
+    /**
+     * TenantController constructor.
+     *
+     * @param TenantServiceInterface $tenantService The tenant service instance
+     */
     public function __construct(
         private readonly TenantServiceInterface $tenantService
     ) {}
 
+    /**
+     * Display a listing of all tenants.
+     *
+     * Supports filtering, sorting, and pagination via query parameters.
+     *
+     * @param Request $request The incoming HTTP request
+     * @return JsonResponse Paginated list of tenants
+     */
     public function index(Request $request): JsonResponse
     {
         $tenants = $this->tenantService->getAllTenants(
@@ -35,6 +59,15 @@ class TenantController extends Controller
         ]);
     }
 
+    /**
+     * Store a newly created tenant.
+     *
+     * Creates tenant record, provisions database, runs migrations,
+     * seeds default settings, creates admin user, and sends welcome emails.
+     *
+     * @param CreateTenantRequest $request Validated tenant creation data
+     * @return JsonResponse The created tenant resource (HTTP 201)
+     */
     public function store(CreateTenantRequest $request): JsonResponse
     {
         $tenant = $this->tenantService->createTenant(
@@ -48,6 +81,12 @@ class TenantController extends Controller
         ], 201);
     }
 
+    /**
+     * Display the specified tenant.
+     *
+     * @param string $id The tenant UUID
+     * @return JsonResponse The tenant resource or 404 error
+     */
     public function show(string $id): JsonResponse
     {
         $tenant = $this->tenantService->getTenantById($id);
@@ -65,6 +104,13 @@ class TenantController extends Controller
         ]);
     }
 
+    /**
+     * Update the specified tenant.
+     *
+     * @param UpdateTenantRequest $request Validated tenant update data
+     * @param string $id The tenant UUID
+     * @return JsonResponse The updated tenant resource
+     */
     public function update(UpdateTenantRequest $request, string $id): JsonResponse
     {
         $tenant = $this->tenantService->updateTenant(
@@ -79,6 +125,14 @@ class TenantController extends Controller
         ]);
     }
 
+    /**
+     * Remove the specified tenant.
+     *
+     * Permanently deletes tenant and associated data.
+     *
+     * @param string $id The tenant UUID
+     * @return JsonResponse Success confirmation
+     */
     public function destroy(string $id): JsonResponse
     {
         $this->tenantService->deleteTenant($id);
@@ -89,6 +143,14 @@ class TenantController extends Controller
         ]);
     }
 
+    /**
+     * Suspend the specified tenant.
+     *
+     * Prevents tenant access while preserving all data.
+     *
+     * @param string $id The tenant UUID
+     * @return JsonResponse The suspended tenant resource
+     */
     public function suspend(string $id): JsonResponse
     {
         $tenant = $this->tenantService->suspendTenant($id);
@@ -100,6 +162,14 @@ class TenantController extends Controller
         ]);
     }
 
+    /**
+     * Activate a previously suspended tenant.
+     *
+     * Restores full tenant access.
+     *
+     * @param string $id The tenant UUID
+     * @return JsonResponse The activated tenant resource
+     */
     public function activate(string $id): JsonResponse
     {
         $tenant = $this->tenantService->activateTenant($id);

@@ -1,44 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models\Central;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Stancl\Tenancy\Database\Models\Domain as BaseDomain;
 
 /**
- * Domain model for central database.
+ * Class Domain
  *
+ * Custom domain model for tenant routing.
+ *
+ * @property int $id
+ * @property string $domain
+ * @property string $tenant_id
+ * @property bool $is_primary
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property-read Tenant $tenant
  */
 class Domain extends BaseDomain
 {
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<string>
+     * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'domain',
         'tenant_id',
         'is_primary',
     ];
 
     /**
-     * Get the tenant that owns the domain.
-     */
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
-
-    /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'is_primary' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'is_primary' => 'boolean',
+    ];
 }
