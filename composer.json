@@ -14,13 +14,18 @@
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "predis/predis": "*",
         "spatie/laravel-activitylog": "*",
+        "spatie/laravel-analytics": "*",
+        "spatie/laravel-medialibrary": "*",
         "spatie/laravel-permission": "*",
         "spatie/laravel-query-builder": "*",
+        "spatie/laravel-sluggable": "*",
         "stancl/tenancy": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "laravel/boost": "*",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",

@@ -6,6 +6,7 @@ namespace App\Http\Requests\Central;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Class UpdatePlanRequest
@@ -39,14 +40,14 @@ class UpdatePlanRequest extends FormRequest
              * @var string $name
              * @example "Enterprise Plan"
              */
-            'name' => ['required', 'string', 'max:255', 'unique:plans,name,' . $this->route('plan')->id],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:plans,name,' . $this->route('plan')->id],
 
             /**
              * The updated monthly price.
              * @var float $price
              * @example 99.99
              */
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['sometimes', 'numeric', 'min:0'],
 
             /**
              * Updated feature list.
@@ -54,6 +55,7 @@ class UpdatePlanRequest extends FormRequest
              * @example ["unlimited_products", "white_label", "api_access"]
              */
             'features' => ['nullable', 'array'],
+            'features.*' => ['string', Rule::in(array_keys(config('plan_modules.modules', [])))],
 
             /**
              * Updated usage limits.
@@ -61,6 +63,7 @@ class UpdatePlanRequest extends FormRequest
              * @example {"products": -1, "staff": 50, "storage_gb": 100}
              */
             'limits' => ['nullable', 'array'],
+            'limits.*' => ['numeric'],
 
             /**
              * Updated availability status.

@@ -3,9 +3,11 @@
 namespace App\Models\Central;
 
 use Illuminate\Database\Eloquent\Model;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 class NotificationTemplate extends Model
 {
+    use CentralConnection;
     /**
      * The attributes that are mass assignable.
      *

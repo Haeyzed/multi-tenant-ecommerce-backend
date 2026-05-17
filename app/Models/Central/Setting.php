@@ -4,8 +4,7 @@ namespace App\Models\Central;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Setting extends Model
 {
@@ -37,5 +36,10 @@ class Setting extends Model
             'trial_days' => 'integer',
             'default_plan_id' => 'integer',
         ];
+    }
+
+    public function defaultPlan(): BelongsTo
+    {
+        return $this->belongsTo(Plan::class, 'default_plan_id');
     }
 }

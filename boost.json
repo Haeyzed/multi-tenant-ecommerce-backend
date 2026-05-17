@@ -1,0 +1,30 @@
+{
+    "agents": [
+        "gemini",
+        "cursor",
+        "copilot",
+        "claude_code",
+        "junie"
+    ],
+    "cloud": true,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "packages": [
+        "spatie/laravel-medialibrary",
+        "spatie/laravel-permission",
+        "spatie/laravel-query-builder",
+        "spatie/laravel-sluggable"
+    ],
+    "sail": false,
+    "skills": [
+        "laravel-best-practices",
+        "pest-testing",
+        "tailwindcss-development",
+        "medialibrary-development",
+        "laravel-permission-development",
+        "laravel-query-builder",
+        "sluggable-development",
+        "deploying-laravel-cloud"
+    ]
+}

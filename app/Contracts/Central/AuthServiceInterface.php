@@ -53,6 +53,13 @@ interface AuthServiceInterface
     public function verifyOtp(VerifyOtpDTO $dto): array;
 
     /**
+     * Resend email verification OTP.
+     *
+     * @return array<string, string>
+     */
+    public function resendVerificationOtp(string $email): array;
+
+    /**
      * Reset password with verified OTP.
      *
      * @param ResetPasswordDTO $dto

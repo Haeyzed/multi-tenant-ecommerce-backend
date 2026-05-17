@@ -20,11 +20,11 @@ class SubscriptionRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(Subscription::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('tenant_id'),
                 AllowedFilter::exact('plan_id'),
                 AllowedFilter::exact('status'),
-            ])
+            )
             ->allowedSorts('starts_at', 'ends_at', 'status', 'created_at')
             ->with(['tenant', 'plan'])
             ->paginate($perPage);

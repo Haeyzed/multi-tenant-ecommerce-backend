@@ -1,34 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories\Central;
 
 use App\Models\Central\Setting;
 
 class SettingRepository
 {
-    /**
-     * Get the settings.
-     *
-     * @return Setting|null
-     */
-    public function get(): ?Setting
+    public function instance(): Setting
     {
-        return Setting::first();
+        return Setting::query()->firstOrCreate([], [
+            'site_name' => config('app.name', 'Multi-Tenant E-Commerce'),
+            'support_email' => config('mail.from.address', 'support@example.com'),
+            'currency' => 'USD',
+            'maintenance_mode' => false,
+            'trial_days' => 14,
+            'default_plan_id' => null,
+            'email_notifications' => true,
+            'sms_notifications' => false,
+        ]);
     }
 
-    /**
-     * Update the settings.
-     *
-     * @param array $data
-     * @return Setting
-     */
     public function update(array $data): Setting
     {
-        $setting = Setting::first() ?? new Setting();
+        $setting = $this->instance();
+        $setting->update($data);
 
-        $setting->fill($data);
-        $setting->save();
-
-        return $setting;
+        return $setting->fresh(['defaultPlan']);
     }
 }

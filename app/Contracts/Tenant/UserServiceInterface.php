@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Tenant;
 
-use App\DTOs\Central\UserDTO;
+use App\DTOs\Tenant\UserDTO;
 use App\Models\Tenant\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 

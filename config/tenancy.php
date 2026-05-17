@@ -16,9 +16,40 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => [
-        '127.0.0.1',
-        'localhost',
+    'central_domains' => array_values(array_unique(array_filter(array_map(
+        trim(...),
+        explode(',', (string) env('CENTRAL_DOMAINS', implode(',', array_filter([
+            '127.0.0.1',
+            'localhost',
+            parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: null,
+        ]))))
+    )))),
+
+    /**
+     * Host suffix for tenant subdomains: {slug}.{tenant_domain_base}
+     * Example slug "globalhub" + suffix "ecommerce-application-backend.test"
+     *   => globalhub.ecommerce-application-backend.test
+     *
+     * Set TENANT_DOMAIN_SUFFIX in .env (falls back to APP_URL host, then TENANT_DOMAIN_BASE).
+     */
+    'tenant_domain_base' => env(
+        'TENANT_DOMAIN_SUFFIX',
+        env(
+            'TENANT_DOMAIN_BASE',
+            parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: 'localhost'
+        )
+    ),
+
+    /**
+     * Local development helpers (Laravel Herd hosts registration).
+     */
+    'local_dev' => [
+        'auto_register_hosts' => (bool) env('TENANT_AUTO_REGISTER_HOSTS', false),
+        'auto_unregister_hosts' => (bool) env('TENANT_AUTO_UNREGISTER_HOSTS', true),
+        'register_hosts_after_response' => (bool) env('TENANT_REGISTER_HOSTS_AFTER_RESPONSE', true),
+        'herd_binary' => env('HERD_BIN', 'herd'),
+        'herd_timeout_seconds' => (int) env('TENANT_HERD_TIMEOUT', 120),
+        'domain_tld' => env('TENANT_DOMAIN_TLD', 'test'),
     ],
 
     /**
@@ -39,7 +70,7 @@ return [
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.
      */
     'database' => [
-        'central_connection' => env('DB_CONNECTION', 'central'),
+        'central_connection' => env('DB_CENTRAL_CONNECTION', env('DB_CONNECTION', 'mysql')),
 
         /**
          * Connection used as a "template" for the dynamically created tenant database connection.

@@ -20,8 +20,6 @@ class UpdateTenantRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -35,55 +33,42 @@ class UpdateTenantRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tenantId = $this->route('tenant');
+        $primaryDomainId = null;
+
+        if ($tenantId) {
+            $primaryDomainId = \App\Models\Central\Domain::query()
+                ->where('tenant_id', $tenantId)
+                ->where('is_primary', true)
+                ->value('id');
+        }
+
         return [
-            /**
-             * The updated business name.
-             * @var string|null $name
-             * @example "Green Mart Nigeria Ltd"
-             */
             'name' => ['sometimes', 'string', 'max:255'],
-
-            /**
-             * The updated business email.
-             * @var string|null $email
-             * @example "newemail@greenmart.ng"
-             */
-            'email' => ['sometimes', 'email', Rule::unique('tenants', 'email')->ignore($this->route('tenant'))],
-
-            /**
-             * The updated business phone.
-             * @var string|null $phone
-             * @example "+234 800 111 2222"
-             */
+            'email' => ['sometimes', 'email', Rule::unique('tenants', 'email')->ignore($tenantId)],
             'phone' => ['nullable', 'string', 'max:20'],
-
-            /**
-             * The updated subdomain.
-             * @var string|null $domain
-             * @example "greenmart-new"
-             */
-            'domain' => ['sometimes', 'string', Rule::unique('domains', 'domain')->ignore($this->route('tenant'), 'tenant_id'), 'regex:/^[a-z0-9-]+$/'],
-
-            /**
-             * The updated account status.
-             * @var string|null $status
-             * @example "suspended"
-             */
+            'domain' => [
+                'sometimes',
+                'string',
+                Rule::unique('domains', 'domain')->ignore($primaryDomainId),
+                'regex:/^[a-z0-9-]+(\.[a-z0-9.-]+)*$/i',
+            ],
             'status' => ['sometimes', Rule::enum(TenantStatus::class)],
-
-            /**
-             * The updated subscription plan.
-             * @var string|null $plan
-             * @example "premium"
-             */
-            'plan' => ['sometimes', 'string', 'in:basic,premium,enterprise'],
-
-            /**
-             * Updated metadata.
-             * @var array<string, mixed>|null $data
-             * @example {"industry": "wholesale"}
-             */
+            'plan_id' => [
+                'sometimes',
+                'integer',
+                Rule::exists('plans', 'id')->where('is_active', true),
+            ],
             'data' => ['nullable', 'array'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('domain')) {
+            $this->merge([
+                'domain' => strtolower(trim((string) $this->domain)),
+            ]);
+        }
     }
 }

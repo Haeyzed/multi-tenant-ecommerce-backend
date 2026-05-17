@@ -19,10 +19,10 @@ class ThirdPartyCredentialRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(ThirdPartyCredential::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('is_active'),
                 AllowedFilter::partial('provider'),
-            ])
+            )
             ->allowedSorts('provider', 'created_at')
             ->paginate($perPage);
     }

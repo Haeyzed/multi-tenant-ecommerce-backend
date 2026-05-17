@@ -43,11 +43,17 @@ class ResetPasswordRequest extends FormRequest
             'email' => ['required', 'email'],
 
             /**
-             * The verified OTP code.
-             * @var string $otp
+             * Token from verify-otp (password_reset). Use this after verify-otp, or send otp instead for a one-step reset.
+             * @var string|null $reset_token
+             */
+            'reset_token' => ['required_without:otp', 'string', 'size:64'],
+
+            /**
+             * OTP from forgot-password email. Alternative to reset_token when skipping verify-otp.
+             * @var string|null $otp
              * @example "123456"
              */
-            'otp' => ['required', 'string', 'size:6'],
+            'otp' => ['required_without:reset_token', 'string', 'size:6'],
 
             /**
              * The new password.

@@ -6,16 +6,19 @@ namespace App\Services\Central;
 
 use App\Contracts\Central\TenantServiceInterface;
 use App\DTOs\Central\TenantDTO;
+use App\DTOs\Central\UpdateTenantDTO;
 use App\Events\Central\TenantCreated;
 use App\Events\Central\TenantSuspended;
 use App\Models\Central\Tenant;
+use App\Models\Tenant\Setting;
 use App\Models\Tenant\User;
 use App\Repositories\Central\TenantRepository;
+use App\Services\Central\LocalDevelopment\TenantHostRegistrar;
+use App\Support\Tenancy\TenantDomain;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -36,7 +39,8 @@ readonly class TenantService implements TenantServiceInterface
      * @param TenantRepository $repository Repository for tenant data access
      */
     public function __construct(
-        private TenantRepository $repository
+        private TenantRepository $repository,
+        private TenantHostRegistrar $tenantHostRegistrar,
     ) {}
 
     /**
@@ -65,78 +69,75 @@ readonly class TenantService implements TenantServiceInterface
     /**
      * Create a new tenant with an admin user.
      *
-     * Steps:
-     * 1. Create a tenant record in a central database
-     * 2. Create a primary domain for the tenant
-     * 3. Run tenant migrations and seed default settings
-     * 4. Generate or use the provided admin password
-     * 5. Create a tenant admin user and assign a role
-     * 6. Fire TenantCreated event to send welcome emails
-     *
      * @param TenantDTO $dto Data transfer object containing tenant and admin details
      * @return Tenant The created tenant with loaded domains
-     * @throws Throwable When database transaction fails
+     * @throws Throwable When provisioning fails
      */
     public function createTenant(TenantDTO $dto): Tenant
     {
-        return DB::transaction(function () use ($dto) {
-            // 1. Create tenant
+        $tenant = null;
+        $adminUser = null;
+        $plainPassword = $dto->adminPassword ?? $this->generateSecurePassword();
+
+        try {
             $tenant = $this->repository->create([
                 'id' => Str::uuid()->toString(),
                 ...$dto->toArray(),
             ]);
 
-            // 2. Create primary domain
+            $tenantHost = TenantDomain::qualify($dto->domain);
+
             $tenant->domains()->create([
-                'domain' => $dto->domain,
+                'domain' => $tenantHost,
                 'is_primary' => true,
             ]);
 
-            // 3. Run tenant migrations and seed default settings
-            $tenant->run(function () {
-                Artisan::call('migrate', [
-                    '--path' => 'database/migrations/tenant',
-                    '--force' => true,
-                ]);
-
+            $tenant->run(function () use ($dto, $plainPassword, &$adminUser) {
                 Artisan::call('db:seed', [
-                    '--class' => 'Database\\Seeders\\Tenant\\SettingSeeder',
+                    '--class' => 'Database\\Seeders\\Tenant\\TenantDatabaseSeeder',
                     '--force' => true,
                 ]);
-            });
 
-            // 4. Generate or use the provided password
-            $plainPassword = $dto->adminPassword ?? $this->generateSecurePassword();
+                if ($dto->storeSettings !== null) {
+                    Setting::updateSettings($dto->storeSettings->toArray());
+                }
 
-            // 5. Create tenant admin user
-            $tenant->run(function () use ($tenant, $dto, $plainPassword) {
-                $user = User::query()->create([
+                $adminUser = User::query()->create([
                     'name' => $dto->adminName,
                     'email' => $dto->adminEmail,
-                    'password' => Hash::make($plainPassword),
+                    'password' => $plainPassword,
                     'email_verified_at' => now(),
                 ]);
 
-                $user->assignRole('admin');
-
-                // 6. Fire event with credentials for email notification
-                event(new TenantCreated($tenant, $user, $plainPassword));
+                $adminUser->assignRole('super_admin');
             });
 
-            return $tenant->fresh(['domains']);
-        });
+            if ($adminUser === null) {
+                throw new Exception('Failed to create tenant admin user.');
+            }
+
+            event(new TenantCreated($tenant, $adminUser, $plainPassword));
+
+            $this->tenantHostRegistrar->register($tenantHost);
+
+            return $tenant->fresh(['domains', 'plan']);
+        } catch (Throwable $e) {
+            $tenant?->forceDelete();
+
+            throw $e;
+        }
     }
 
     /**
      * Update an existing tenant.
      *
      * @param string $id The tenant UUID
-     * @param TenantDTO $dto Updated tenant data
+     * @param UpdateTenantDTO $dto Updated tenant data
      * @return Tenant The updated tenant instance
      * @throws Exception When tenant is not found
      * @throws Throwable When database transaction fails
      */
-    public function updateTenant(string $id, TenantDTO $dto): Tenant
+    public function updateTenant(string $id, UpdateTenantDTO $dto): Tenant
     {
         $tenant = $this->repository->findById($id);
 
@@ -145,18 +146,46 @@ readonly class TenantService implements TenantServiceInterface
         }
 
         return DB::transaction(function () use ($tenant, $dto) {
-            $this->repository->update($tenant, $dto->toArray());
-            return $tenant->fresh('domains');
+            $attributes = $dto->toArray();
+
+            if ($attributes !== []) {
+                $this->repository->update($tenant, $attributes);
+            }
+
+            if ($dto->hasDomain()) {
+                $primaryDomain = $tenant->domains()->where('is_primary', true)->first()
+                    ?? $tenant->domains()->first();
+
+                $tenantHost = TenantDomain::qualify($dto->domain);
+
+                if ($primaryDomain) {
+                    $oldHost = $primaryDomain->domain;
+                    $primaryDomain->update(['domain' => $tenantHost]);
+
+                    if ($oldHost !== $tenantHost) {
+                        $this->tenantHostRegistrar->unregister($oldHost);
+                        $this->tenantHostRegistrar->register($tenantHost);
+                    }
+                } else {
+                    $tenant->domains()->create([
+                        'domain' => $tenantHost,
+                        'is_primary' => true,
+                    ]);
+
+                    $this->tenantHostRegistrar->register($tenantHost);
+                }
+            }
+
+            return $tenant->fresh(['domains', 'plan']);
         });
     }
 
     /**
-     * Delete a tenant by its ID.
+     * Delete a tenant by its ID (including tenant database).
      *
      * @param string $id The tenant UUID
      * @return bool True if deletion was successful
      * @throws Exception When tenant is not found
-     * @throws Throwable When database transaction fails
      */
     public function deleteTenant(string $id): bool
     {
@@ -166,15 +195,17 @@ readonly class TenantService implements TenantServiceInterface
             throw new Exception('Tenant not found');
         }
 
-        return DB::transaction(function () use ($tenant) {
-            return $this->repository->delete($tenant);
-        });
+        $tenant->load('domains');
+
+        foreach ($tenant->domains as $domain) {
+            $this->tenantHostRegistrar->unregister($domain->domain);
+        }
+
+        return $this->repository->delete($tenant);
     }
 
     /**
      * Suspend a tenant by its ID.
-     *
-     * Prevents tenant access while preserving all data.
      *
      * @param string $id The tenant UUID
      * @return Tenant The suspended tenant instance
@@ -216,10 +247,6 @@ readonly class TenantService implements TenantServiceInterface
 
     /**
      * Generate a cryptographically secure random password.
-     *
-     * Creates a 12-character password with a mixed case, numbers, and symbols.
-     *
-     * @return string The generated password
      */
     private function generateSecurePassword(): string
     {

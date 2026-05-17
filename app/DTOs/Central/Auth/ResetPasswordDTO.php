@@ -23,9 +23,10 @@ readonly class ResetPasswordDTO
      */
     public function __construct(
         public string $email,
-        public string $otp,
         public string $password,
-        public string $passwordConfirmation
+        public string $passwordConfirmation,
+        public ?string $otp = null,
+        public ?string $resetToken = null,
     ) {}
 
     /**
@@ -38,9 +39,10 @@ readonly class ResetPasswordDTO
     {
         return new self(
             email: $data['email'],
-            otp: $data['otp'],
             password: $data['password'],
-            passwordConfirmation: $data['password_confirmation']
+            passwordConfirmation: $data['password_confirmation'],
+            otp: $data['otp'] ?? null,
+            resetToken: $data['reset_token'] ?? null,
         );
     }
 }

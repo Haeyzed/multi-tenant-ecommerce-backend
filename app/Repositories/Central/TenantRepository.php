@@ -23,10 +23,10 @@ class TenantRepository
                 AllowedFilter::exact('status'),
                 AllowedFilter::partial('name'),
                 AllowedFilter::partial('email'),
-                'plan',
+                AllowedFilter::exact('plan_id'),
             )
             ->allowedSorts('name', 'created_at', 'status')
-            ->with('domains')
+            ->with(['domains', 'plan'])
             ->paginate($perPage);
     }
 
@@ -38,7 +38,7 @@ class TenantRepository
      */
     public function findById(string $id): ?Tenant
     {
-        return Tenant::with('domains')->find($id);
+        return Tenant::with(['domains', 'plan'])->find($id);
     }
 
     /**
@@ -73,6 +73,6 @@ class TenantRepository
      */
     public function delete(Tenant $tenant): bool
     {
-        return $tenant->delete();
+        return (bool) $tenant->forceDelete();
     }
 }

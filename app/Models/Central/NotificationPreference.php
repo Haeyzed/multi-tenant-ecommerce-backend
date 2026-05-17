@@ -4,9 +4,11 @@ namespace App\Models\Central;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 class NotificationPreference extends Model
 {
+    use CentralConnection;
     /**
      * The attributes that are mass assignable.
      *

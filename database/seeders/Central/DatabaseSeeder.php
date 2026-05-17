@@ -1,14 +1,7 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Central;
 
-use App\Models\Central\User;
-use Database\Seeders\Central\NotificationSeeder;
-use Database\Seeders\Central\PlanSeeder;
-use Database\Seeders\Central\RolePermissionSeeder;
-use Database\Seeders\Central\SettingSeeder;
-use Database\Seeders\Central\TenantSeeder;
-use Database\Seeders\Central\UserSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 

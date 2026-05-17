@@ -15,6 +15,7 @@ use App\Http\Requests\Central\Auth\ChangePasswordRequest;
 use App\Http\Requests\Central\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Central\Auth\LoginRequest;
 use App\Http\Requests\Central\Auth\RegisterRequest;
+use App\Http\Requests\Central\Auth\ResendVerificationOtpRequest;
 use App\Http\Requests\Central\Auth\ResetPasswordRequest;
 use App\Http\Requests\Central\Auth\VerifyOtpRequest;
 use Illuminate\Http\JsonResponse;
@@ -113,6 +114,16 @@ class AuthController extends Controller
             'success' => true,
             'message' => $result['message'],
             'data' => $result,
+        ]);
+    }
+
+    public function resendVerificationOtp(ResendVerificationOtpRequest $request): JsonResponse
+    {
+        $result = $this->authService->resendVerificationOtp($request->validated('email'));
+
+        return response()->json([
+            'success' => true,
+            'message' => $result['message'],
         ]);
     }
 

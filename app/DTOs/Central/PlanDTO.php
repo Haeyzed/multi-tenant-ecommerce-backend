@@ -1,26 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DTOs\Central;
+
+use App\Models\Central\Plan;
 
 readonly class PlanDTO
 {
-    /**
-     * @param string $name
-     * @param float $price
-     * @param array|null $features
-     * @param array|null $limits
-     */
     public function __construct(
         public string $name,
         public float $price,
         public ?array $features = [],
         public ?array $limits = [],
+        public bool $isActive = true,
     ) {}
 
-    /**
-     * @param array $data
-     * @return self
-     */
     public static function fromRequest(array $data): self
     {
         return new self(
@@ -28,12 +23,21 @@ readonly class PlanDTO
             price: (float) $data['price'],
             features: $data['features'] ?? [],
             limits: $data['limits'] ?? [],
+            isActive: (bool) ($data['is_active'] ?? true),
         );
     }
 
-    /**
-     * @return array
-     */
+    public static function fromUpdateRequest(array $data, Plan $plan): self
+    {
+        return new self(
+            name: $data['name'] ?? $plan->name,
+            price: array_key_exists('price', $data) ? (float) $data['price'] : (float) $plan->price,
+            features: $data['features'] ?? $plan->features ?? [],
+            limits: $data['limits'] ?? $plan->limits ?? [],
+            isActive: array_key_exists('is_active', $data) ? (bool) $data['is_active'] : $plan->is_active,
+        );
+    }
+
     public function toArray(): array
     {
         return [
@@ -41,6 +45,7 @@ readonly class PlanDTO
             'price' => $this->price,
             'features' => $this->features,
             'limits' => $this->limits,
+            'is_active' => $this->isActive,
         ];
     }
 }

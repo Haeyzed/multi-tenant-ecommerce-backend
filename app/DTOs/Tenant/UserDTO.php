@@ -2,8 +2,6 @@
 
 namespace App\DTOs\Tenant;
 
-use Illuminate\Support\Facades\Hash;
-
 readonly class UserDTO
 {
     /**
@@ -48,7 +46,7 @@ readonly class UserDTO
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'password' => Hash::make($this->password),
+            'password' => $this->password,
             'is_active' => $this->is_active,
         ];
     }

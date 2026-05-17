@@ -136,20 +136,34 @@ class Setting extends Model
     private const int CACHE_TTL = 3600;
 
     /**
-     * Get the singleton settings record (cached).
+     * Get the singleton settings record (cached by ID).
+     *
+     * Only the row ID is cached — not the model — because
+     * config/cache.php sets serializable_classes to false.
      *
      * Creates default settings if no record exists.
-     *
-     * @return self The settings instance
      */
     public static function instance(): self
     {
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
-            return self::firstOrCreate([], [
+        $id = Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function (): int {
+            return (int) self::firstOrCreate([], [
                 'store_name' => 'My Store',
                 'currency' => 'NGN',
-            ]);
+            ])->id;
         });
+
+        $instance = self::find($id);
+
+        if ($instance instanceof self) {
+            return $instance;
+        }
+
+        self::clearCache();
+
+        return self::firstOrCreate([], [
+            'store_name' => 'My Store',
+            'currency' => 'NGN',
+        ]);
     }
 
     /**
@@ -167,7 +181,7 @@ class Setting extends Model
     }
 
     /**
-     * Update settings and clear cache.
+     * Update settings and clear the cache.
      *
      * @param array<string, mixed> $data Key-value pairs to update
      * @return self The updated settings instance

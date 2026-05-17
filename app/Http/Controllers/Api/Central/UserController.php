@@ -94,11 +94,11 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse User details or 404 error
      */
-    public function show(string $id): JsonResponse
+    public function show(string $user): JsonResponse
     {
-        $user = $this->userService->getUserById($id);
+        $model = $this->userService->getUserById($user);
 
-        if (!$user) {
+        if (! $model) {
             return response()->json([
                 'success' => false,
                 'message' => 'User not found',
@@ -107,7 +107,7 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => new UserResource($user->load(['roles', 'permissions'])),
+            'data' => new UserResource($model->load(['roles', 'permissions'])),
         ]);
     }
 
@@ -120,20 +120,19 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Updated user resource
      */
-    public function update(UpdateUserRequest $request, string $id): JsonResponse
+    public function update(UpdateUserRequest $request, string $user): JsonResponse
     {
-        $dto = UserDTO::fromRequest($request->validated());
-        $user = $this->userService->updateUser($id, $dto);
+        $dto = UserDTO::fromUpdateRequest($request->validated());
+        $model = $this->userService->updateUser($user, $dto);
 
-        // Sync direct permissions if provided
         if ($request->has('permissions')) {
-            $user->syncPermissions($request->input('permissions'));
+            $model->syncPermissions($request->input('permissions'));
         }
 
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully',
-            'data' => new UserResource($user->load(['roles', 'permissions'])),
+            'data' => new UserResource($model->load(['roles', 'permissions'])),
         ]);
     }
 
@@ -145,9 +144,9 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Deletion confirmation
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $user): JsonResponse
     {
-        $this->userService->deleteUser($id);
+        $this->userService->deleteUser($user);
 
         return response()->json([
             'success' => true,
@@ -164,9 +163,9 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Updated user with roles
      */
-    public function assignRole(AssignRoleRequest $request, string $id): JsonResponse
+    public function assignRole(AssignRoleRequest $request, string $user): JsonResponse
     {
-        $user = $this->userService->assignRole($id, $request->input('role'));
+        $user = $this->userService->assignRole($user, $request->input('role'));
 
         return response()->json([
             'success' => true,
@@ -184,9 +183,9 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Updated user with permissions
      */
-    public function assignPermissions(AssignPermissionsRequest $request, string $id): JsonResponse
+    public function assignPermissions(AssignPermissionsRequest $request, string $user): JsonResponse
     {
-        $user = $this->userService->getUserById($id);
+        $user = $this->userService->getUserById($user);
 
         if (!$user) {
             return response()->json([
@@ -213,9 +212,9 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Updated user with remaining permissions
      */
-    public function revokePermissions(AssignPermissionsRequest $request, string $id): JsonResponse
+    public function revokePermissions(AssignPermissionsRequest $request, string $user): JsonResponse
     {
-        $user = $this->userService->getUserById($id);
+        $user = $this->userService->getUserById($user);
 
         if (!$user) {
             return response()->json([
@@ -242,9 +241,9 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Updated user with synced permissions
      */
-    public function syncPermissions(AssignPermissionsRequest $request, string $id): JsonResponse
+    public function syncPermissions(AssignPermissionsRequest $request, string $user): JsonResponse
     {
-        $user = $this->userService->getUserById($id);
+        $user = $this->userService->getUserById($user);
 
         if (!$user) {
             return response()->json([
@@ -270,9 +269,9 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Permission breakdown
      */
-    public function permissions(string $id): JsonResponse
+    public function permissions(string $user): JsonResponse
     {
-        $user = $this->userService->getUserById($id);
+        $user = $this->userService->getUserById($user);
 
         if (!$user) {
             return response()->json([
@@ -302,9 +301,9 @@ class UserController extends Controller
      * @param string $id The user ID
      * @return JsonResponse Updated status
      */
-    public function toggleStatus(string $id): JsonResponse
+    public function toggleStatus(string $user): JsonResponse
     {
-        $user = $this->userService->getUserById($id);
+        $user = $this->userService->getUserById($user);
 
         if (!$user) {
             return response()->json([

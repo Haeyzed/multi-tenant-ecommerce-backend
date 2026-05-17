@@ -37,10 +37,10 @@ interface UserServiceInterface
      * Update an existing user.
      *
      * @param string $id
-     * @param array $data
+     * @param UserDTO $dto
      * @return User
      */
-    public function updateUser(string $id, array $data): User;
+    public function updateUser(string $id, UserDTO $dto): User;
 
     /**
      * Delete an existing user.

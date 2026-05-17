@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\Tenant;
 use App\DTOs\Tenant\SettingDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\UpdateSettingRequest;
-use App\Services\Tenant\SettingService;
+use App\Contracts\Tenant\SettingServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -26,7 +26,7 @@ class SettingController extends Controller
      * @param SettingService $service
      */
     public function __construct(
-        private readonly SettingService $service
+        private readonly SettingServiceInterface $service
     ) {}
 
     /**

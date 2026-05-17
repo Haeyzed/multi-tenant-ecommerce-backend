@@ -19,7 +19,10 @@ class TenantSeeder extends Seeder
             'plan_id' => 1,
             'status' => 'active',
         ]);
-        $tenant1->domains()->create(['domain' => 'tenant1.localhost']);
+        $tenant1->domains()->create([
+            'domain' => 'tenant1.localhost',
+            'is_primary' => true,
+        ]);
 
         $tenant2 = Tenant::query()->create([
             'id' => 'tenant2',
@@ -28,6 +31,9 @@ class TenantSeeder extends Seeder
             'plan_id' => 2,
             'status' => 'active',
         ]);
-        $tenant2->domains()->create(['domain' => 'tenant2.localhost']);
+        $tenant2->domains()->create([
+            'domain' => 'tenant2.localhost',
+            'is_primary' => true,
+        ]);
     }
 }

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Central;
 
 use App\Contracts\Central\TenantServiceInterface;
 use App\DTOs\Central\TenantDTO;
+use App\DTOs\Central\UpdateTenantDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\CreateTenantRequest;
 use App\Http\Requests\Central\UpdateTenantRequest;
@@ -87,9 +88,9 @@ class TenantController extends Controller
      * @param string $id The tenant UUID
      * @return JsonResponse The tenant resource or 404 error
      */
-    public function show(string $id): JsonResponse
+    public function show(string $tenant): JsonResponse
     {
-        $tenant = $this->tenantService->getTenantById($id);
+        $tenant = $this->tenantService->getTenantById($tenant);
 
         if (!$tenant) {
             return response()->json([
@@ -111,11 +112,11 @@ class TenantController extends Controller
      * @param string $id The tenant UUID
      * @return JsonResponse The updated tenant resource
      */
-    public function update(UpdateTenantRequest $request, string $id): JsonResponse
+    public function update(UpdateTenantRequest $request, string $tenant): JsonResponse
     {
         $tenant = $this->tenantService->updateTenant(
-            $id,
-            TenantDTO::fromRequest($request->validated())
+            $tenant,
+            UpdateTenantDTO::fromRequest($request->validated())
         );
 
         return response()->json([
@@ -133,9 +134,9 @@ class TenantController extends Controller
      * @param string $id The tenant UUID
      * @return JsonResponse Success confirmation
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $tenant): JsonResponse
     {
-        $this->tenantService->deleteTenant($id);
+        $this->tenantService->deleteTenant($tenant);
 
         return response()->json([
             'success' => true,
@@ -151,9 +152,9 @@ class TenantController extends Controller
      * @param string $id The tenant UUID
      * @return JsonResponse The suspended tenant resource
      */
-    public function suspend(string $id): JsonResponse
+    public function suspend(string $tenant): JsonResponse
     {
-        $tenant = $this->tenantService->suspendTenant($id);
+        $tenant = $this->tenantService->suspendTenant($tenant);
 
         return response()->json([
             'success' => true,
@@ -170,9 +171,9 @@ class TenantController extends Controller
      * @param string $id The tenant UUID
      * @return JsonResponse The activated tenant resource
      */
-    public function activate(string $id): JsonResponse
+    public function activate(string $tenant): JsonResponse
     {
-        $tenant = $this->tenantService->activateTenant($id);
+        $tenant = $this->tenantService->activateTenant($tenant);
 
         return response()->json([
             'success' => true,

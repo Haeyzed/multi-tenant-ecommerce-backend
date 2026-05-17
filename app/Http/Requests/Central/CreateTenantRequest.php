@@ -79,7 +79,11 @@ class CreateTenantRequest extends FormRequest
              * @var int $plan_id
              * @example 2
              */
-            'plan_id' => ['required', 'integer', 'exists:plans,id'],
+            'plan_id' => [
+                'required',
+                'integer',
+                Rule::exists('plans', 'id')->where('is_active', true),
+            ],
 
             /**
              * Additional tenant metadata.
@@ -102,7 +106,7 @@ class CreateTenantRequest extends FormRequest
              * @var string $admin_email
              * @example "john@greenmart.ng"
              */
-            'admin_email' => ['required', 'email', 'unique:tenants,email'],
+            'admin_email' => ['required', 'email', 'different:email'],
 
             /**
              * The admin user's password (auto-generated if null).
@@ -117,6 +121,8 @@ class CreateTenantRequest extends FormRequest
              * @example "+234 800 987 6543"
              */
             'admin_phone' => ['nullable', 'string', 'max:20'],
+
+            ...TenantStoreSettingsRules::rules(),
         ];
     }
 
@@ -136,6 +142,7 @@ class CreateTenantRequest extends FormRequest
             'admin_email' => 'admin email',
             'admin_password' => 'admin password',
             'admin_phone' => 'admin phone',
+            ...TenantStoreSettingsRules::attributes(),
         ];
     }
 

@@ -6,6 +6,8 @@ namespace App\Notifications\Central;
 
 use App\Models\Central\NotificationPreference;
 use App\Models\Central\NotificationTemplate;
+use App\Support\Notifications\CentralNotificationTemplateCatalog;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -126,7 +128,7 @@ class TemplatedEmailNotification extends Notification
         return (new MailMessage)
             ->subject($subject)
             ->view('emails.notification', [
-                'body' => nl2br(e($body), false),
+                'body' => nl2br($body, false),
                 'subject' => $subject,
                 'greeting' => $this->resolveGreeting($template),
                 'closing' => $this->resolveClosing($template),
@@ -148,11 +150,32 @@ class TemplatedEmailNotification extends Notification
      */
     private function resolveTemplate(): ?NotificationTemplate
     {
-        return NotificationTemplate::query()
+        $template = NotificationTemplate::query()
             ->where('event', $this->event)
             ->where('channel', 'email')
             ->where('is_active', true)
             ->first();
+
+        if ($template !== null) {
+            return $template;
+        }
+
+        CentralNotificationTemplateCatalog::syncMissing();
+
+        $template = NotificationTemplate::query()
+            ->where('event', $this->event)
+            ->where('channel', 'email')
+            ->where('is_active', true)
+            ->first();
+
+        if ($template === null) {
+            Log::warning('Notification template not found after sync.', [
+                'event' => $this->event,
+                'channel' => 'email',
+            ]);
+        }
+
+        return $template;
     }
 
     /**
@@ -180,9 +203,11 @@ class TemplatedEmailNotification extends Notification
      */
     private function resolveGreeting(NotificationTemplate $template): string
     {
-        return $template->greeting
+        $greeting = $template->greeting
             ?? $this->templateData['greeting']
             ?? self::DEFAULT_GREETING;
+
+        return $this->parseVariables($greeting, $this->templateData);
     }
 
     /**
@@ -195,9 +220,11 @@ class TemplatedEmailNotification extends Notification
      */
     private function resolveClosing(NotificationTemplate $template): string
     {
-        return $template->closing
+        $closing = $template->closing
             ?? $this->templateData['closing']
             ?? self::DEFAULT_CLOSING;
+
+        return $this->parseVariables($closing, $this->templateData);
     }
 
     /**
@@ -210,9 +237,11 @@ class TemplatedEmailNotification extends Notification
      */
     private function resolveSignOff(NotificationTemplate $template): string
     {
-        return $template->sign_off
+        $signOff = $template->sign_off
             ?? $this->templateData['sign_off']
             ?? config('app.name');
+
+        return $this->parseVariables($signOff, $this->templateData);
     }
 
     /**

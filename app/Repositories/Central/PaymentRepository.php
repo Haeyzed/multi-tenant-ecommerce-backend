@@ -19,11 +19,11 @@ class PaymentRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(Payment::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('invoice_id'),
                 AllowedFilter::exact('payment_method'),
                 AllowedFilter::exact('status'),
-            ])
+            )
             ->allowedSorts('amount', 'created_at', 'status')
             ->with('invoice')
             ->paginate($perPage);

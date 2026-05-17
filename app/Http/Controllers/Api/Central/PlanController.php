@@ -104,7 +104,7 @@ class PlanController extends Controller
      */
     public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
-        $dto = PlanDTO::fromRequest($request->validated());
+        $dto = PlanDTO::fromUpdateRequest($request->validated(), $plan);
         $updatedPlan = $this->planService->updatePlan($plan, $dto);
 
         return response()->json([

@@ -67,7 +67,7 @@ readonly class UserService implements UserServiceInterface
                 $user->assignRole($dto->role);
             }
 
-            event(new UserCreated($user));
+            event(new UserCreated($user, plainPassword: $dto->password));
 
             return $user->refresh('roles');
         });
@@ -90,8 +90,9 @@ readonly class UserService implements UserServiceInterface
         }
 
         return DB::transaction(function () use ($user, $data) {
-            if (isset($data['password'])) {
-                $data['password'] = bcrypt($data['password']);
+            if (isset($data['role'])) {
+                $user->syncRoles([$data['role']]);
+                unset($data['role']);
             }
 
             return $this->repository->update($user, $data);

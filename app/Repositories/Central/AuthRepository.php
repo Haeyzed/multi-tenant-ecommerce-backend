@@ -105,10 +105,10 @@ class AuthRepository
      * @param string $password The hashed password
      * @return void
      */
-    public function updatePassword(User $user, string $password): void
+    public function updatePassword(User $user, string $plainPassword): void
     {
         $user->update([
-            'password' => $password,
+            'password' => $plainPassword,
         ]);
     }
 
@@ -123,12 +123,35 @@ class AuthRepository
         $token = Str::random(64);
 
         Cache::put(
-            "password_reset:$email",
+            $this->passwordResetKey($email),
             $token,
             now()->addMinutes(60)
         );
 
         return $token;
+    }
+
+    /**
+     * Validate a password reset token issued after OTP verification.
+     */
+    public function validatePasswordResetToken(string $email, string $token): bool
+    {
+        $stored = Cache::get($this->passwordResetKey($email));
+
+        return is_string($stored) && hash_equals($stored, $token);
+    }
+
+    /**
+     * Remove the password reset token after a successful reset.
+     */
+    public function forgetPasswordResetToken(string $email): void
+    {
+        Cache::forget($this->passwordResetKey($email));
+    }
+
+    private function passwordResetKey(string $email): string
+    {
+        return 'password_reset:'.md5(strtolower($email));
     }
 
     /**

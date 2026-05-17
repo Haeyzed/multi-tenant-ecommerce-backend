@@ -7,6 +7,10 @@ return [
      * Your API path. By default, all routes starting with this path will be added to the docs.
      * If you need to change this behavior, you can add your custom routes resolver using `Scramble::routes()`.
      */
+    /*
+     * Default docs (central API) are narrowed in ScrambleServiceProvider to api/v1/central.
+     * Tenant API docs: /docs/api/tenant (see ScrambleServiceProvider).
+     */
     'api_path' => 'api',
 
     /*
@@ -88,6 +92,10 @@ return [
      *     'Prod' => 'https://scramble.dedoc.co/api',
      * ],
      * ```
+     */
+    /*
+     * Central and tenant server URLs are set per API in ScrambleServiceProvider.
+     * Tenant Try It uses SCRAMBLE_TENANT_DOMAIN (e.g. greenmart.localhost).
      */
     'servers' => null,
 

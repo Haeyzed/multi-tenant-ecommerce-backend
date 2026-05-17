@@ -6,12 +6,12 @@ namespace App\Services\Central;
 
 use App\Contracts\Central\UserServiceInterface;
 use App\DTOs\Central\UserDTO;
+use App\Events\Central\UserCreated;
 use App\Models\Central\User;
 use App\Repositories\Central\UserRepository;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Throwable;
 
 /**
@@ -68,16 +68,17 @@ readonly class UserService implements UserServiceInterface
     public function createUser(UserDTO $dto): User
     {
         return DB::transaction(function () use ($dto) {
-            $data = $dto->toArray();
-            $data['password'] = Hash::make($dto->password);
-
-            $user = $this->repository->create($data);
+            $user = $this->repository->create($dto->toArray());
 
             if ($dto->role) {
                 $user->assignRole($dto->role);
             }
 
-            return $user->fresh(['roles', 'permissions']);
+            $user = $user->fresh(['roles', 'permissions']);
+
+            event(new UserCreated($user, plainPassword: $dto->password));
+
+            return $user;
         });
     }
 
@@ -100,14 +101,15 @@ readonly class UserService implements UserServiceInterface
         return DB::transaction(function () use ($user, $dto) {
             $data = $dto->toArray();
 
-            // Only hash password if provided
-            if (!empty($data['password'])) {
-                $data['password'] = Hash::make($data['password']);
-            } else {
-                unset($data['password']);
+            if ($data !== []) {
+                $user = $this->repository->update($user, $data);
             }
 
-            return $this->repository->update($user, $data);
+            if ($dto->role) {
+                $user->syncRoles([$dto->role]);
+            }
+
+            return $user->fresh(['roles', 'permissions']);
         });
     }
 

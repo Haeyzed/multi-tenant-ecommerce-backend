@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Tenant;
 
-use App\Contracts\Central\UserServiceInterface;
-use App\DTOs\Central\UserDTO;
+use App\Contracts\Tenant\UserServiceInterface;
+use App\DTOs\Tenant\UserDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Central\CreateUserRequest;
-use App\Http\Requests\Central\UpdateUserRequest;
-use App\Http\Resources\Central\UserResource;
+use App\Http\Requests\Tenant\AssignRoleRequest;
+use App\Http\Requests\Tenant\CreateUserRequest;
+use App\Http\Requests\Tenant\UpdateUserRequest;
+use App\Http\Resources\Tenant\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,7 +24,7 @@ class UserController extends Controller
     {
         $users = $this->userService->getAllUsers(
             $request->all(),
-            $request->input('per_page', 15)
+            $request->integer('per_page', 15)
         );
 
         return response()->json([
@@ -48,11 +51,11 @@ class UserController extends Controller
         ], 201);
     }
 
-    public function show(string $id): JsonResponse
+    public function show(string $user): JsonResponse
     {
-        $user = $this->userService->getUserById($id);
+        $model = $this->userService->getUserById($user);
 
-        if (!$user) {
+        if ($model === null) {
             return response()->json([
                 'success' => false,
                 'message' => 'User not found',
@@ -61,28 +64,39 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => new UserResource($user),
+            'data' => new UserResource($model),
         ]);
     }
 
-    public function update(UpdateUserRequest $request, string $id): JsonResponse
+    public function update(UpdateUserRequest $request, string $user): JsonResponse
     {
-        $user = $this->userService->updateUser($id, $request->validated());
+        $model = $this->userService->updateUser($user, $request->validated());
 
         return response()->json([
             'success' => true,
             'message' => 'User updated successfully',
-            'data' => new UserResource($user),
+            'data' => new UserResource($model),
         ]);
     }
 
-    public function destroy(string $id): JsonResponse
+    public function destroy(string $user): JsonResponse
     {
-        $this->userService->deleteUser($id);
+        $this->userService->deleteUser($user);
 
         return response()->json([
             'success' => true,
             'message' => 'User deleted successfully',
+        ]);
+    }
+
+    public function assignRole(AssignRoleRequest $request, string $user): JsonResponse
+    {
+        $model = $this->userService->assignRole($user, $request->validated('role'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Role assigned successfully',
+            'data' => new UserResource($model),
         ]);
     }
 }

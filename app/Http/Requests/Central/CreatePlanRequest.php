@@ -6,6 +6,7 @@ namespace App\Http\Requests\Central;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Class CreatePlanRequest
@@ -54,6 +55,7 @@ class CreatePlanRequest extends FormRequest
              * @example ["unlimited_products", "advanced_analytics", "priority_support"]
              */
             'features' => ['nullable', 'array'],
+            'features.*' => ['string', Rule::in(array_keys(config('plan_modules.modules', [])))],
 
             /**
              * Usage limits for the plan.
@@ -61,6 +63,7 @@ class CreatePlanRequest extends FormRequest
              * @example {"products": 100, "staff": 5, "storage_gb": 10}
              */
             'limits' => ['nullable', 'array'],
+            'limits.*' => ['numeric'],
 
             /**
              * Whether the plan is available for subscription.

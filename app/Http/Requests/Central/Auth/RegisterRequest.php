@@ -62,13 +62,6 @@ class RegisterRequest extends FormRequest
              * @example "SecureP@ss123!"
              */
             'password' => ['required', Password::defaults(), 'confirmed'],
-
-            /**
-             * The role to assign.
-             * @var string|null $role
-             * @example "admin"
-             */
-            'role' => ['nullable', 'string', 'exists:roles,name'],
         ];
     }
 }

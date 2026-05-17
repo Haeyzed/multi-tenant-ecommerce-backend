@@ -21,10 +21,10 @@ class InvoiceRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(Invoice::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('tenant_id'),
                 AllowedFilter::exact('status'),
-            ])
+            )
             ->allowedSorts('amount', 'due_date', 'status', 'created_at')
             ->with('tenant')
             ->paginate($perPage);

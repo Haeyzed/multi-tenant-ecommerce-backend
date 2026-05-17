@@ -20,10 +20,10 @@ class PlanRepository
     public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         return QueryBuilder::for(Plan::class)
-            ->allowedFilters([
+            ->allowedFilters(
                 AllowedFilter::exact('is_active'),
                 AllowedFilter::partial('name'),
-            ])
+            )
             ->allowedSorts('name', 'price', 'created_at')
             ->paginate($perPage);
     }

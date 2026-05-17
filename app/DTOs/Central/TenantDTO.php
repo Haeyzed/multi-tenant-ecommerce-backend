@@ -22,6 +22,7 @@ readonly class TenantDTO
      * @param string|null $adminPassword Plain text password (null = auto-generate)
      * @param string|null $adminPhone Admin user phone
      * @param array $data Additional tenant metadata
+     * @param TenantStoreSettingsDTO|null $storeSettings Initial tenant store settings
      */
     public function __construct(
         public string $name,
@@ -35,6 +36,7 @@ readonly class TenantDTO
         public ?string $adminPassword = null,
         public ?string $adminPhone = null,
         public array $data = [],
+        public ?TenantStoreSettingsDTO $storeSettings = null,
     ) {}
 
     /**

@@ -17,11 +17,9 @@ class UserCreated
      * Create a new event instance.
      */
     public function __construct(
-        public readonly User $user
-    )
-    {
-        //
-    }
+        public readonly User $user,
+        public readonly ?string $plainPassword = null,
+    ) {}
 
     /**
      * Get the channels the event should broadcast on.

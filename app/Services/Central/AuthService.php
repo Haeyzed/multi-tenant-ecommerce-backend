@@ -10,8 +10,9 @@ use App\DTOs\Central\Auth\ForgotPasswordDTO;
 use App\DTOs\Central\Auth\LoginDTO;
 use App\DTOs\Central\Auth\ResetPasswordDTO;
 use App\DTOs\Central\Auth\VerifyOtpDTO;
+use App\Events\Central\PasswordResetOtpIssued;
+use App\Events\Central\VerificationOtpIssued;
 use App\Models\Central\User;
-use App\Notifications\Central\TemplatedEmailNotification;
 use App\Repositories\Central\AuthRepository;
 use Exception;
 use Illuminate\Support\Facades\Hash;
@@ -102,11 +103,7 @@ readonly class AuthService implements AuthServiceInterface
 
         $otp = $this->repository->generateOtp($dto->email, 'password_reset');
 
-        $user->notify(new TemplatedEmailNotification('password_reset_otp', [
-            'user_name' => $user->name,
-            'otp' => $otp,
-            'expires_in' => '15 minutes',
-        ]));
+        event(new PasswordResetOtpIssued($user, $otp));
 
         return ['message' => 'Password reset OTP has been sent to your email.'];
     }
@@ -176,15 +173,31 @@ readonly class AuthService implements AuthServiceInterface
 
         $user = $this->repository->findByEmail($dto->email);
 
-        if (!$user) {
+        if (! $user) {
             throw ValidationException::withMessages([
                 'email' => ['User not found.'],
             ]);
         }
 
-        $this->repository->updatePassword($user, Hash::make($dto->password));
+        $verified = false;
 
-        // Revoke all existing tokens
+        if ($dto->resetToken !== null) {
+            $verified = $this->repository->validatePasswordResetToken($dto->email, $dto->resetToken);
+        }
+
+        if (! $verified && $dto->otp !== null) {
+            $verified = $this->repository->verifyOtp($dto->email, $dto->otp, 'password_reset');
+        }
+
+        if (! $verified) {
+            throw ValidationException::withMessages([
+                'reset_token' => ['Invalid or expired reset token or OTP.'],
+            ]);
+        }
+
+        $this->repository->forgetPasswordResetToken($dto->email);
+        $this->repository->updatePassword($user, $dto->password);
+
         $user->tokens()->delete();
 
         return ['message' => 'Password reset successfully. Please login with your new password.'];
@@ -212,7 +225,7 @@ readonly class AuthService implements AuthServiceInterface
             ]);
         }
 
-        $this->repository->updatePassword($user, Hash::make($dto->newPassword));
+        $this->repository->updatePassword($user, $dto->newPassword);
 
         // Revoke all tokens except current
         $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
@@ -256,6 +269,35 @@ readonly class AuthService implements AuthServiceInterface
     }
 
     /**
+     * Resend email verification OTP for an unverified account.
+     *
+     * @return array<string, string>
+     * @throws Exception
+     */
+    public function resendVerificationOtp(string $email): array
+    {
+        $user = $this->repository->findByEmail($email);
+
+        if (! $user) {
+            return ['message' => 'If the email exists, a verification OTP has been sent.'];
+        }
+
+        if ($user->email_verified_at !== null) {
+            return ['message' => 'Email is already verified.'];
+        }
+
+        if ($this->repository->isRateLimited($email, 'email_verification')) {
+            throw new Exception('Please wait before requesting another OTP.');
+        }
+
+        $otp = $this->repository->generateOtp($email, 'email_verification');
+
+        event(new VerificationOtpIssued($user, $otp));
+
+        return ['message' => 'Verification OTP has been sent to your email.'];
+    }
+
+    /**
      * Register a new user and send verification OTP.
      *
      * @param array<string, mixed> $data Registration data
@@ -268,21 +310,15 @@ readonly class AuthService implements AuthServiceInterface
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
-            'password' => Hash::make($data['password']),
+            'password' => $data['password'],
             'is_active' => true,
         ]);
 
-        // Assign default role
-        $user->assignRole($data['role'] ?? 'user');
+        $user->assignRole('viewer');
 
-        // Generate and send verification OTP
         $otp = $this->repository->generateOtp($user->email, 'email_verification');
 
-        $user->notify(new TemplatedEmailNotification('email_verification_otp', [
-            'user_name' => $user->name,
-            'otp' => $otp,
-            'expires_in' => '15 minutes',
-        ]));
+        event(new VerificationOtpIssued($user, $otp));
 
         return [
             'user' => $user,

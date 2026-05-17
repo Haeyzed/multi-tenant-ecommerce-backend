@@ -80,7 +80,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(
+            Permission::query()->firstOrCreate(
                 ['name' => $permission, 'guard_name' => 'sanctum']
             );
         }

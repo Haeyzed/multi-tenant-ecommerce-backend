@@ -4,11 +4,11 @@ namespace App\Models\Central;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Plan extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
 
     /**
      * @var array<string>
@@ -30,14 +30,12 @@ class Plan extends Model
             'features' => 'array',
             'limits' => 'array',
             'is_active' => 'boolean',
+            'price' => 'decimal:2',
         ];
     }
 
-    public function getActivitylogOptions(): LogOptions
+    public function tenants(): HasMany
     {
-        return LogOptions::defaults()
-            ->logFillable()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+        return $this->hasMany(Tenant::class);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\Central;
 
+use App\Support\Notifications\CentralNotificationTemplateCatalog;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -69,7 +70,45 @@ class NotificationSeeder extends Seeder
         DB::table('notification_templates')->truncate();
         Schema::enableForeignKeyConstraints();
 
+        $defaults = $this->templateBrandingDefaults();
+
         $templates = [
+            // === EMAIL VERIFICATION OTP (register / resend) ===
+            [
+                'event' => 'email_verification_otp',
+                'channel' => 'email',
+                'subject' => 'Verify your email - {platform_name}',
+                'body' => "Thank you for registering with <strong>{platform_name}</strong>.\n\nUse the verification code below to confirm your email address. This code expires in <strong>{expires_in}</strong>.\n\n<div style=\"text-align: center; margin: 24px 0;\"><span style=\"font-size: 28px; font-weight: bold; letter-spacing: 6px; background: #f4f4f4; padding: 12px 24px; border-radius: 6px;\">{otp}</span></div>\n\nIf you did not create an account, you can safely ignore this email.",
+                'greeting' => 'Hello {user_name},',
+                'closing' => 'Best regards,',
+                'sign_off' => '{platform_name}',
+                ...$defaults,
+            ],
+
+            // === PASSWORD RESET OTP ===
+            [
+                'event' => 'password_reset_otp',
+                'channel' => 'email',
+                'subject' => 'Password reset code - {platform_name}',
+                'body' => "We received a request to reset your password.\n\nEnter this code to continue. It expires in <strong>{expires_in}</strong>.\n\n<div style=\"text-align: center; margin: 24px 0;\"><span style=\"font-size: 28px; font-weight: bold; letter-spacing: 6px; background: #f4f4f4; padding: 12px 24px; border-radius: 6px;\">{otp}</span></div>\n\nIf you did not request a password reset, please ignore this email or contact support.",
+                'greeting' => 'Hello {user_name},',
+                'closing' => 'Stay secure,',
+                'sign_off' => '{platform_name}',
+                ...$defaults,
+            ],
+
+            // === CENTRAL USER WELCOME (admin-created users) ===
+            [
+                'event' => 'central_user_welcome',
+                'channel' => 'email',
+                'subject' => 'Welcome to {platform_name}',
+                'body' => "Your central platform account has been created.\n\n<strong>Email:</strong> {user_email}\n\nYou can sign in using the password provided by your administrator. For security, change your password after your first login.\n\n<strong>Login URL:</strong> <a href=\"{login_url}\" style=\"color: #ff641a; text-decoration: none;\">{login_url}</a>",
+                'greeting' => 'Hello {user_name},',
+                'closing' => 'Welcome aboard,',
+                'sign_off' => '{platform_name}',
+                ...$defaults,
+            ],
+
             // === TENANT WELCOME EMAIL ===
             [
                 'event' => 'tenant_welcome',
@@ -79,13 +118,7 @@ class NotificationSeeder extends Seeder
                 'greeting' => 'Hello {tenant_name} Team,',
                 'closing' => 'Best regards,',
                 'sign_off' => '{platform_name}',
-                'logo_url' => 'https://lawma.softalliance.com/assets/LAWMA-white2Asset-CGHAptko.png',
-                'logo_alt' => 'Platform Logo',
-                'header_bg_color' => '#1e2b2e',
-                'accent_color' => '#73bc1c',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
+                ...$defaults,
             ],
 
             // === TENANT USER CREATED (LOGIN CREDENTIALS) ===
@@ -97,15 +130,16 @@ class NotificationSeeder extends Seeder
                 'greeting' => 'Hello {user_name},',
                 'closing' => 'Welcome to the team,',
                 'sign_off' => '{platform_name}',
-                'logo_url' => 'https://lawma.softalliance.com/assets/LAWMA-white2Asset-CGHAptko.png',
-                'logo_alt' => 'Platform Logo',
-                'header_bg_color' => '#1e2b2e',
-                'accent_color' => '#73bc1c',
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
+                ...$defaults,
             ],
         ];
+
+        $templates = array_map(function (array $template) {
+            $template['created_at'] = now();
+            $template['updated_at'] = now();
+
+            return $template;
+        }, $templates);
 
         DB::table('notification_templates')->insert($templates);
 
@@ -131,18 +165,14 @@ class NotificationSeeder extends Seeder
         Schema::enableForeignKeyConstraints();
 
         $events = [
-            'facility_onboarded',
-            'facility_updated',
-            'invoice_generated',
-            'payment_received',
-            'payment_overdue',
-            'user_registered',
-            'password_reset',
-            'system_maintenance',
-            'report_generated',
+            'email_verification_otp',
+            'password_reset_otp',
+            'central_user_welcome',
+            'tenant_welcome',
+            'tenant_user_created',
         ];
 
-        $channels = ['email', 'sms', 'in_app'];
+        $channels = ['email', 'sms'];
         $preferences = [];
         $users = DB::table('users')->limit(5)->get();
 
@@ -150,7 +180,7 @@ class NotificationSeeder extends Seeder
             foreach ($events as $event) {
                 foreach ($channels as $channel) {
                     $preferences[] = [
-                        'notifiable_type' => 'App\\Models\\User',
+                        'notifiable_type' => 'App\\Models\\Central\\User',
                         'notifiable_id' => $user->id,
                         'event' => $event,
                         'channel' => $channel,
@@ -166,4 +196,5 @@ class NotificationSeeder extends Seeder
 
         $this->command->info('Seeded ' . count($preferences) . ' notification preferences.');
     }
+
 }

@@ -3,6 +3,7 @@
 namespace App\Contracts\Central;
 
 use App\DTOs\Central\TenantDTO;
+use App\DTOs\Central\UpdateTenantDTO;
 use App\Models\Central\Tenant;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -37,10 +38,10 @@ interface TenantServiceInterface
      * Update an existing tenant.
      *
      * @param string $id
-     * @param TenantDTO $dto
+     * @param UpdateTenantDTO $dto
      * @return Tenant
      */
-    public function updateTenant(string $id, TenantDTO $dto): Tenant;
+    public function updateTenant(string $id, UpdateTenantDTO $dto): Tenant;
 
     /**
      * Delete a tenant by its ID.
