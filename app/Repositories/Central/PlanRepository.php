@@ -3,6 +3,7 @@
 namespace App\Repositories\Central;
 
 use App\Models\Central\Plan;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -13,11 +14,10 @@ class PlanRepository
     /**
      * Get all plans with optional filters and pagination.
      *
-     * @param array $filters
-     * @param int $perPage
+     * @param Request $request
      * @return LengthAwarePaginator
      */
-    public function findAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function findAll(Request $request): LengthAwarePaginator
     {
         return QueryBuilder::for(Plan::class)
             ->allowedFilters(
@@ -25,7 +25,10 @@ class PlanRepository
                 AllowedFilter::partial('name'),
             )
             ->allowedSorts('name', 'price', 'created_at')
-            ->paginate($perPage);
+            ->paginate(
+                $request->integer('per_page', 15),
+                page: $request->integer('page', 1)
+            );
     }
 
     /**

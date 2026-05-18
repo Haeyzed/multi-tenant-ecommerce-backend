@@ -4,6 +4,7 @@ namespace App\Contracts\Central;
 
 use App\DTOs\Central\PlanDTO;
 use App\Models\Central\Plan;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -12,11 +13,10 @@ interface PlanServiceInterface
     /**
      * Get all plans with pagination.
      *
-     * @param array $filters
-     * @param int $perPage
+     * @param Request $request
      * @return LengthAwarePaginator
      */
-    public function getAllPlans(array $filters = [], int $perPage = 15): LengthAwarePaginator;
+    public function getAllPlans(Request $request): LengthAwarePaginator;
 
     /**
      * Get active plans for dropdown.

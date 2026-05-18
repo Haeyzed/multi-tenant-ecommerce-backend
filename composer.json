@@ -17,6 +17,7 @@
         "predis/predis": "*",
         "spatie/laravel-activitylog": "*",
         "spatie/laravel-analytics": "*",
+        "spatie/laravel-data": "^4.23",
         "spatie/laravel-medialibrary": "*",
         "spatie/laravel-permission": "*",
         "spatie/laravel-query-builder": "*",

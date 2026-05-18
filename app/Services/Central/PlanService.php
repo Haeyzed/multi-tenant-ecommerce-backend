@@ -6,6 +6,7 @@ use App\Contracts\Central\PlanServiceInterface;
 use App\DTOs\Central\PlanDTO;
 use App\Models\Central\Plan;
 use App\Repositories\Central\PlanRepository;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -23,13 +24,12 @@ readonly class PlanService implements PlanServiceInterface
     /**
      * Get all plans with pagination.
      *
-     * @param array $filters
-     * @param int $perPage
+     * @param Request $request
      * @return LengthAwarePaginator
      */
-    public function getAllPlans(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function getAllPlans(Request $request): LengthAwarePaginator
     {
-        return $this->repository->findAll($filters, $perPage);
+        return $this->repository->findAll($request);
     }
 
     /**
