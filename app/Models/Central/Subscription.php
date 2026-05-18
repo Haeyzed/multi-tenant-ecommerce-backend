@@ -6,12 +6,9 @@ use App\Enums\Central\SubscriptionStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
 
 class Subscription extends Model
 {
-    use HasFactory, LogsActivity;
 
     /**
      * @var array<string>
@@ -34,14 +31,6 @@ class Subscription extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
         ];
-    }
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logFillable()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
     }
 
     /**

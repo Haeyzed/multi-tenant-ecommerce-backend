@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs\Tenant\Auth;
 
 /**
- * Class LoginDTO
+ * Class LoginData
  *
  * Data transfer object for user login credentials.
  *
@@ -14,7 +14,7 @@ namespace App\DTOs\Tenant\Auth;
 readonly class LoginDTO
 {
     /**
-     * Create a new LoginDTO instance.
+     * Create a new LoginData instance.
      *
      * @param string $email The user's email address
      * @param string $password The user's plain text password

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs\Tenant\Auth;
 
 /**
- * Class ForgotPasswordDTO
+ * Class ForgotPasswordData
  *
  * Data transfer object for password reset request.
  *
@@ -14,7 +14,7 @@ namespace App\DTOs\Tenant\Auth;
 readonly class ForgotPasswordDTO
 {
     /**
-     * Create a new ForgotPasswordDTO instance.
+     * Create a new ForgotPasswordData instance.
      *
      * @param string $email The user's registered email address
      */

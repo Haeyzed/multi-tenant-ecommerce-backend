@@ -1,0 +1,4273 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Laravel \u2014 Central API",
+        "version": "0.0.1",
+        "description": "Central platform API for tenant lifecycle, billing, and administration."
+    },
+    "servers": [
+        {
+            "url": "http://localhost/api/v1/central",
+            "description": "Local (central)"
+        }
+    ],
+    "security": [
+        {
+            "http": []
+        }
+    ],
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "operationId": "auth.register",
+                "summary": "Register a new user account",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Registration successful. Please verify your email with the OTP sent."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "operationId": "auth.login",
+                "summary": "Authenticate a user and generate a token",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Login successful"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user": {
+                                                    "$ref": "#/components/schemas/UserResource"
+                                                },
+                                                "token": {
+                                                    "type": "string"
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "const": "Bearer"
+                                                }
+                                            },
+                                            "required": [
+                                                "user",
+                                                "token",
+                                                "token_type"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/auth/forgot-password": {
+            "post": {
+                "operationId": "auth.forgotPassword",
+                "summary": "Request a password reset OTP",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ForgotPasswordRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/auth/verify-otp": {
+            "post": {
+                "operationId": "auth.verifyOtp",
+                "summary": "Verify an OTP for email verification or password reset",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VerifyOtpRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "anyOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string",
+                                                            "const": "OTP verified successfully."
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "message"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string",
+                                                            "const": "OTP verified. You may now reset your password."
+                                                        },
+                                                        "reset_token": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "message",
+                                                        "reset_token"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "message": {
+                                                            "type": "string",
+                                                            "const": "Email verified successfully."
+                                                        },
+                                                        "verified": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "message",
+                                                        "verified"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/auth/resend-verification-otp": {
+            "post": {
+                "operationId": "auth.resendVerificationOtp",
+                "summary": "Resend the email verification OTP",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResendVerificationOtpRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "operationId": "auth.resetPassword",
+                "summary": "Reset the user's password using a valid token or OTP",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResetPasswordRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Password reset successfully. Please login with your new password."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "operationId": "auth.logout",
+                "summary": "Log the user out (Invalidate the token)",
+                "tags": [
+                    "Auth"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Logged out successfully."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/me": {
+            "get": {
+                "operationId": "auth.me",
+                "summary": "Get the authenticated user's profile",
+                "tags": [
+                    "Auth"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/change-password": {
+            "post": {
+                "operationId": "auth.changePassword",
+                "summary": "Change the password for the currently authenticated user",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Password changed successfully."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/plans-dropdown": {
+            "get": {
+                "operationId": "plan.dropdown",
+                "summary": "Get active plans for dropdown",
+                "tags": [
+                    "Plan"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Active plans retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "integer"
+                                                    },
+                                                    "label": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "value",
+                                                    "label"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/plans": {
+            "get": {
+                "operationId": "central.plans.index",
+                "summary": "Get all plans",
+                "tags": [
+                    "Plan"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Plans retrieved successfully"
+                                        },
+                                        "data": {
+                                            "anyOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DataCollection"
+                                                },
+                                                {
+                                                    "$ref": "#/components/schemas/PaginatedDataCollection"
+                                                },
+                                                {
+                                                    "$ref": "#/components/schemas/CursorPaginatedDataCollection"
+                                                },
+                                                {
+                                                    "type": "object"
+                                                },
+                                                {
+                                                    "$ref": "#/components/schemas/LazyCollection"
+                                                },
+                                                {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            ]
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "per_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "central.plans.store",
+                "summary": "Create a new plan",
+                "tags": [
+                    "Plan"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreatePlanRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Plan created successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PlanData"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/plans/{plan}": {
+            "get": {
+                "operationId": "central.plans.show",
+                "summary": "Display the specified plan",
+                "tags": [
+                    "Plan"
+                ],
+                "parameters": [
+                    {
+                        "name": "plan",
+                        "in": "path",
+                        "required": true,
+                        "description": "The plan ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Plan retrieved successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PlanData"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "central.plans.update",
+                "summary": "Update the specified plan",
+                "tags": [
+                    "Plan"
+                ],
+                "parameters": [
+                    {
+                        "name": "plan",
+                        "in": "path",
+                        "required": true,
+                        "description": "The plan ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePlanRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Plan updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PlanData"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "central.plan.update_2",
+                "summary": "Update the specified plan",
+                "tags": [
+                    "Plan"
+                ],
+                "parameters": [
+                    {
+                        "name": "plan",
+                        "in": "path",
+                        "required": true,
+                        "description": "The plan ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePlanRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Plan updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PlanData"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "central.plans.destroy",
+                "summary": "Remove the specified plan",
+                "tags": [
+                    "Plan"
+                ],
+                "parameters": [
+                    {
+                        "name": "plan",
+                        "in": "path",
+                        "required": true,
+                        "description": "The plan ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Plan deleted successfully"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/plan-modules": {
+            "get": {
+                "operationId": "planModule.index",
+                "summary": "List available plan feature modules and limit keys for plan builders",
+                "tags": [
+                    "PlanModule"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Plan modules retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "modules": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            },
+                                                            "description": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "key",
+                                                            "label",
+                                                            "description"
+                                                        ]
+                                                    }
+                                                },
+                                                "limit_keys": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "modules",
+                                                "limit_keys"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/settings": {
+            "get": {
+                "operationId": "setting.show",
+                "tags": [
+                    "Setting"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SettingResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "setting.update",
+                "tags": [
+                    "Setting"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateSettingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Platform settings updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SettingResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/settings/toggle-maintenance": {
+            "post": {
+                "operationId": "setting.toggleMaintenance",
+                "tags": [
+                    "Setting"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Maintenance mode enabled",
+                                                "Maintenance mode disabled"
+                                            ]
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SettingResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/subscriptions": {
+            "get": {
+                "operationId": "subscription.index",
+                "summary": "Get all subscriptions",
+                "tags": [
+                    "Subscription"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Subscriptions retrieved successfully"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "per_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}/subscriptions": {
+            "post": {
+                "operationId": "subscription.store",
+                "summary": "Subscribe a tenant to a plan",
+                "tags": [
+                    "Subscription"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "description": "The tenant ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSubscriptionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Subscription failed"
+                                        },
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant subscribed successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Subscription"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/subscriptions/{subscription}/cancel": {
+            "post": {
+                "operationId": "subscription.cancel",
+                "summary": "Cancel a subscription",
+                "tags": [
+                    "Subscription"
+                ],
+                "parameters": [
+                    {
+                        "name": "subscription",
+                        "in": "path",
+                        "required": true,
+                        "description": "The subscription ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Subscription cancelled successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Subscription"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}/subscription-status": {
+            "get": {
+                "operationId": "subscription.checkStatus",
+                "summary": "Check active subscription status for a tenant",
+                "tags": [
+                    "Subscription"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "description": "The tenant ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Subscription status checked"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "has_active_subscription": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "has_active_subscription"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/tenants": {
+            "get": {
+                "operationId": "central.tenants.index",
+                "description": "Supports filtering, sorting, and pagination via query parameters.",
+                "summary": "Display a listing of all tenants",
+                "tags": [
+                    "Tenant"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TenantResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "per_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "central.tenants.store",
+                "description": "Creates tenant record, provisions database, runs migrations,\nseeds default settings, creates admin user, and sends welcome emails.",
+                "summary": "Store a newly created tenant",
+                "tags": [
+                    "Tenant"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateTenantRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant created successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TenantResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}": {
+            "get": {
+                "operationId": "central.tenants.show",
+                "summary": "Display the specified tenant",
+                "tags": [
+                    "Tenant"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TenantResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "central.tenants.update",
+                "summary": "Update the specified tenant",
+                "tags": [
+                    "Tenant"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTenantRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TenantResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "central.tenant.update_2",
+                "summary": "Update the specified tenant",
+                "tags": [
+                    "Tenant"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTenantRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TenantResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "central.tenants.destroy",
+                "description": "Permanently deletes tenant and associated data.",
+                "summary": "Remove the specified tenant",
+                "tags": [
+                    "Tenant"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant deleted successfully"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}/suspend": {
+            "post": {
+                "operationId": "tenant.suspend",
+                "description": "Prevents tenant access while preserving all data.",
+                "summary": "Suspend the specified tenant",
+                "tags": [
+                    "Tenant"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant suspended successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TenantResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/tenants/{tenant}/activate": {
+            "post": {
+                "operationId": "tenant.activate",
+                "description": "Restores full tenant access.",
+                "summary": "Activate a previously suspended tenant",
+                "tags": [
+                    "Tenant"
+                ],
+                "parameters": [
+                    {
+                        "name": "tenant",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Tenant activated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/TenantResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "operationId": "central.users.index",
+                "description": "Supports filtering, sorting, and pagination via query parameters.",
+                "summary": "Display a listing of all users",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "per_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "central.users.store",
+                "description": "Creates user with optional role and direct permissions.\nSends welcome notification with login details.",
+                "summary": "Store a newly created user",
+                "tags": [
+                    "User"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User created successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}": {
+            "get": {
+                "operationId": "central.users.show",
+                "description": "Includes roles, direct permissions, and effective permissions.",
+                "summary": "Display the specified user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "central.users.update",
+                "description": "Supports partial updates with optional role sync and permission sync.",
+                "summary": "Update the specified user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "central.user.update_2",
+                "description": "Supports partial updates with optional role sync and permission sync.",
+                "summary": "Update the specified user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "central.users.destroy",
+                "description": "Soft deletes user and revokes all roles and permissions.",
+                "summary": "Remove the specified user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User deleted successfully"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/permissions": {
+            "get": {
+                "operationId": "user.permissions",
+                "description": "Shows role permissions, direct permissions, and combined effective permissions.",
+                "summary": "Get user's effective permissions breakdown",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "string"
+                                                },
+                                                "user_name": {
+                                                    "type": "string"
+                                                },
+                                                "roles": {
+                                                    "type": "string"
+                                                },
+                                                "direct_permissions": {
+                                                    "type": "string"
+                                                },
+                                                "role_permissions": {
+                                                    "type": "string"
+                                                },
+                                                "all_effective_permissions": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "user_id",
+                                                "user_name",
+                                                "roles",
+                                                "direct_permissions",
+                                                "role_permissions",
+                                                "all_effective_permissions"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/toggle-status": {
+            "post": {
+                "operationId": "user.toggleStatus",
+                "description": "Activates or deactivates a user account.",
+                "summary": "Toggle the user active status",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "enum": [
+                                                "User activated",
+                                                "User deactivated"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "is_active"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/assign-role": {
+            "post": {
+                "operationId": "user.assignRole",
+                "description": "Replaces any existing roles with the new one.",
+                "summary": "Assign a role to the user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignRoleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Role assigned successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/assign-permissions": {
+            "post": {
+                "operationId": "user.assignPermissions",
+                "description": "Adds permissions beyond role-based permissions.",
+                "summary": "Assign direct permissions to the user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignPermissionsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Permissions assigned successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/revoke-permissions": {
+            "post": {
+                "operationId": "user.revokePermissions",
+                "description": "Removes specific direct permissions while keeping role permissions.",
+                "summary": "Revoke direct permissions from the user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignPermissionsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Permissions revoked successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/sync-permissions": {
+            "post": {
+                "operationId": "user.syncPermissions",
+                "description": "Replaces all direct permissions with the provided list.",
+                "summary": "Sync direct permissions for the user",
+                "tags": [
+                    "User"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignPermissionsRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Permissions synced successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "User not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "http": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "AssignPermissionsRequest": {
+                "type": "object",
+                "description": "Class AssignPermissionsRequest\r\n\r\nValidates direct permission assignments to users.",
+                "properties": {
+                    "permissions": {
+                        "type": "array",
+                        "description": "List of permission names to assign.",
+                        "example": [
+                            "tenants.manage",
+                            "plans.create",
+                            "users.view"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "permissions"
+                ],
+                "title": "AssignPermissionsRequest"
+            },
+            "AssignRoleRequest": {
+                "type": "object",
+                "description": "Class AssignRoleRequest\r\n\r\nValidates role assignment to users.",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "description": "The role name to assign.",
+                        "example": "admin"
+                    }
+                },
+                "required": [
+                    "role"
+                ],
+                "title": "AssignRoleRequest"
+            },
+            "ChangePasswordRequest": {
+                "type": "object",
+                "description": "Class ChangePasswordRequest\r\n\r\nValidates authenticated password change.",
+                "properties": {
+                    "current_password": {
+                        "type": "string",
+                        "description": "The current password.",
+                        "example": "OldP@ss123!"
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "description": "The new password.",
+                        "example": "NewSecureP@ss456!"
+                    },
+                    "new_password_confirmation": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "current_password",
+                    "new_password",
+                    "new_password_confirmation"
+                ],
+                "title": "ChangePasswordRequest"
+            },
+            "CreatePlanRequest": {
+                "type": "object",
+                "description": "Class CreatePlanRequest\n\nValidates data for creating a new subscription plan.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The plan name.",
+                        "example": "Premium Plan"
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "The monthly subscription price.",
+                        "example": 49.99
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Whether the plan is available for subscription.",
+                        "example": true
+                    },
+                    "features": {
+                        "type": "array",
+                        "description": "List of features included in the plan.",
+                        "example": [
+                            "unlimited_products",
+                            "advanced_analytics",
+                            "priority_support"
+                        ],
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "products",
+                                "orders",
+                                "customers",
+                                "inventory",
+                                "analytics",
+                                "api_access",
+                                "white_label",
+                                "priority_support"
+                            ]
+                        }
+                    },
+                    "limits": {
+                        "type": "object",
+                        "description": "Usage limits for the plan.",
+                        "example": {
+                            "products": 100,
+                            "staff": 5,
+                            "storage_gb": 10
+                        },
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "price"
+                ],
+                "title": "CreatePlanRequest"
+            },
+            "CreateSubscriptionRequest": {
+                "type": "object",
+                "description": "Class CreateSubscriptionRequest\n\nValidates subscription creation with payment processing.",
+                "properties": {
+                    "plan_id": {
+                        "type": "integer",
+                        "description": "The subscription plan ID.",
+                        "example": 2
+                    },
+                    "payment_gateway": {
+                        "type": "string",
+                        "description": "The payment gateway to process the transaction.",
+                        "example": "paystack"
+                    },
+                    "transaction_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The external transaction reference ID.",
+                        "example": "TRX_1234567890"
+                    }
+                },
+                "required": [
+                    "plan_id",
+                    "payment_gateway"
+                ],
+                "title": "CreateSubscriptionRequest"
+            },
+            "CreateTenantRequest": {
+                "type": "object",
+                "description": "Class CreateTenantRequest\n\nValidates tenant onboarding with admin user creation.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The business/organization name.",
+                        "example": "Green Mart Nigeria"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "The tenant business email address.",
+                        "example": "info@greenmart.ng"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The tenant business phone number.",
+                        "example": "+234 800 123 4567"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "The subdomain for tenant access.",
+                        "example": "greenmart"
+                    },
+                    "status": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The tenant account status.",
+                        "example": "active"
+                    },
+                    "plan_id": {
+                        "type": "integer",
+                        "description": "The subscription plan ID.",
+                        "example": 2
+                    },
+                    "data": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Additional tenant metadata.",
+                        "example": {
+                            "industry": "retail",
+                            "referral_code": "REF123"
+                        },
+                        "additionalProperties": {}
+                    },
+                    "admin_name": {
+                        "type": "string",
+                        "description": "The admin user's full name.",
+                        "example": "John Doe"
+                    },
+                    "admin_email": {
+                        "type": "string",
+                        "description": "The admin user's email for login.",
+                        "example": "john@greenmart.ng"
+                    },
+                    "admin_password": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The admin user's password (auto-generated if null).",
+                        "example": "SecureP@ss123!"
+                    },
+                    "admin_phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The admin user's phone number.",
+                        "example": "+234 800 987 6543"
+                    },
+                    "settings": {
+                        "type": "object",
+                        "properties": {
+                            "store_name": {
+                                "type": "string",
+                                "maxLength": 255
+                            },
+                            "store_tagline": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 500
+                            },
+                            "store_logo_url": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "uri",
+                                "maxLength": 2048
+                            },
+                            "store_logo_dark_url": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "uri",
+                                "maxLength": 2048
+                            },
+                            "store_favicon_url": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "uri",
+                                "maxLength": 2048
+                            },
+                            "primary_color": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "pattern": "^#[a-fA-F0-9]{6}$"
+                            },
+                            "accent_color": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "pattern": "^#[a-fA-F0-9]{6}$"
+                            },
+                            "secondary_color": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "pattern": "^#[a-fA-F0-9]{6}$"
+                            },
+                            "store_email": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "email",
+                                "maxLength": 255
+                            },
+                            "store_phone": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 20
+                            },
+                            "store_whatsapp": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 20
+                            },
+                            "store_address": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 1000
+                            },
+                            "store_website": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "format": "uri",
+                                "maxLength": 2048
+                            },
+                            "industry": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            },
+                            "business_type": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 100
+                            },
+                            "currency": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 3
+                            },
+                            "currency_symbol": {
+                                "type": "string",
+                                "maxLength": 5
+                            },
+                            "currency_position": {
+                                "type": "string",
+                                "enum": [
+                                    "before",
+                                    "after"
+                                ]
+                            },
+                            "tax_rate": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 100
+                            },
+                            "timezone": {
+                                "type": "string"
+                            },
+                            "language": {
+                                "type": "string",
+                                "maxLength": 10
+                            },
+                            "meta_title": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 255
+                            },
+                            "meta_description": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 500
+                            },
+                            "notification_email_from_name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "maxLength": 255
+                            },
+                            "store_active": {
+                                "type": "boolean"
+                            },
+                            "catalog_visible": {
+                                "type": "boolean"
+                            },
+                            "checkout_enabled": {
+                                "type": "boolean"
+                            },
+                            "guest_checkout_allowed": {
+                                "type": "boolean"
+                            },
+                            "shipping_enabled": {
+                                "type": "boolean"
+                            },
+                            "cod_enabled": {
+                                "type": "boolean"
+                            },
+                            "card_payment_enabled": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "domain",
+                    "plan_id",
+                    "admin_name",
+                    "admin_email"
+                ],
+                "title": "CreateTenantRequest"
+            },
+            "CreateUserRequest": {
+                "type": "object",
+                "description": "Class CreateUserRequest\n\nValidates central platform user creation data.\nSupports role assignment and direct permissions.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The user's full name.",
+                        "example": "Jane Smith"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "The user's email address.",
+                        "example": "jane.smith@platform.com"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The user's phone number.",
+                        "example": "+234 800 555 0199"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "The user's password with confirmation.",
+                        "example": "SecureP@ss123!"
+                    },
+                    "role": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The Spatie role to assign.",
+                        "example": "admin"
+                    },
+                    "is_active": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "description": "Whether the user account is active.",
+                        "example": true
+                    },
+                    "password_confirmation": {
+                        "type": "string"
+                    },
+                    "permissions": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Direct permissions to assign beyond role permissions.",
+                        "example": [
+                            "tenants.manage",
+                            "plans.create"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "password_confirmation"
+                ],
+                "title": "CreateUserRequest"
+            },
+            "CursorPaginatedDataCollection": {
+                "type": "object",
+                "additionalProperties": {},
+                "title": "CursorPaginatedDataCollection"
+            },
+            "DataCollection": {
+                "type": "object",
+                "additionalProperties": {},
+                "title": "DataCollection"
+            },
+            "DomainResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "The domain unique identifier.",
+                        "examples": [
+                            1
+                        ]
+                    },
+                    "domain": {
+                        "type": "string",
+                        "description": "The domain name/subdomain.",
+                        "examples": [
+                            "greenmart.localhost"
+                        ]
+                    },
+                    "is_primary": {
+                        "type": "boolean",
+                        "description": "Whether this is the primary domain for the tenant.",
+                        "examples": [
+                            true
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "The domain creation timestamp.",
+                        "examples": [
+                            "2026-05-16 14:30:00"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "domain",
+                    "is_primary",
+                    "created_at"
+                ],
+                "title": "DomainResource"
+            },
+            "ForgotPasswordRequest": {
+                "type": "object",
+                "description": "Class ForgotPasswordRequest\r\n\r\nValidates password reset request.",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "The registered email address.",
+                        "example": "user@platform.com"
+                    }
+                },
+                "required": [
+                    "email"
+                ],
+                "title": "ForgotPasswordRequest"
+            },
+            "LazyCollection": {
+                "type": "object",
+                "additionalProperties": {},
+                "title": "LazyCollection"
+            },
+            "LoginRequest": {
+                "type": "object",
+                "description": "Class LoginRequest\r\n\r\nValidates user login credentials.",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "The user's email address.",
+                        "example": "superadmin@platform.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "The user's password.",
+                        "example": "password"
+                    },
+                    "remember": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "description": "Whether to remember the session.",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "title": "LoginRequest"
+            },
+            "PaginatedDataCollection": {
+                "type": "object",
+                "additionalProperties": {},
+                "title": "PaginatedDataCollection"
+            },
+            "PlanData": {
+                "type": "object",
+                "additionalProperties": {},
+                "title": "PlanData"
+            },
+            "PlanResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "The plan unique identifier.",
+                        "examples": [
+                            2
+                        ]
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The plan display name.",
+                        "examples": [
+                            "Premium Plan"
+                        ]
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "The monthly subscription price.",
+                        "examples": [
+                            49.99
+                        ]
+                    },
+                    "features": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "List of included features.",
+                        "examples": [
+                            [
+                                "unlimited_products",
+                                "advanced_analytics",
+                                "priority_support"
+                            ]
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "limits": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Usage limits for the plan.",
+                        "examples": [
+                            {
+                                "products": 100,
+                                "staff": 5,
+                                "storage_gb": 10
+                            }
+                        ],
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Whether the plan is currently available.",
+                        "examples": [
+                            true
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "The plan creation timestamp.",
+                        "examples": [
+                            "2026-05-10 09:00:00"
+                        ]
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "description": "The plan last update timestamp.",
+                        "examples": [
+                            "2026-05-15 16:45:00"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "price",
+                    "features",
+                    "limits",
+                    "is_active",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "PlanResource"
+            },
+            "RegisterRequest": {
+                "type": "object",
+                "description": "Class RegisterRequest\n\nValidates user registration data.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The user's full name.",
+                        "example": "Jane Smith"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "The user's email address.",
+                        "example": "jane@platform.com"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The user's phone number.",
+                        "example": "+234 800 555 0199"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "The user's password.",
+                        "example": "SecureP@ss123!"
+                    },
+                    "password_confirmation": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "password_confirmation"
+                ],
+                "title": "RegisterRequest"
+            },
+            "ResendVerificationOtpRequest": {
+                "type": "object",
+                "description": "Class ResendVerificationOtpRequest\n\nValidates email resend with OTP.",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "The user's email.",
+                        "example": "user@platform.com"
+                    }
+                },
+                "required": [
+                    "email"
+                ],
+                "title": "ResendVerificationOtpRequest"
+            },
+            "ResetPasswordRequest": {
+                "type": "object",
+                "description": "Class ResetPasswordRequest\n\nValidates password reset with OTP.",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "The user's email.",
+                        "example": "user@platform.com"
+                    },
+                    "reset_token": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Token from verify-otp (password_reset). Use this after verify-otp, or send otp instead for a one-step reset."
+                    },
+                    "otp": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "OTP from forgot-password email. Alternative to reset_token when skipping verify-otp.",
+                        "example": "123456"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "The new password.",
+                        "example": "NewSecureP@ss456!"
+                    },
+                    "password_confirmation": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email",
+                    "password",
+                    "password_confirmation"
+                ],
+                "title": "ResetPasswordRequest"
+            },
+            "SettingResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "site_name": {
+                        "type": "string"
+                    },
+                    "site_logo_url": {
+                        "type": "string"
+                    },
+                    "primary_color": {
+                        "type": "string"
+                    },
+                    "accent_color": {
+                        "type": "string"
+                    },
+                    "secondary_color": {
+                        "type": "string"
+                    },
+                    "support_email": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "maintenance_mode": {
+                        "type": "string"
+                    },
+                    "trial_days": {
+                        "type": "string"
+                    },
+                    "default_plan_id": {
+                        "type": "string"
+                    },
+                    "default_plan": {
+                        "$ref": "#/components/schemas/PlanResource"
+                    },
+                    "email_notifications": {
+                        "type": "string"
+                    },
+                    "sms_notifications": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "site_name",
+                    "site_logo_url",
+                    "primary_color",
+                    "accent_color",
+                    "secondary_color",
+                    "support_email",
+                    "currency",
+                    "maintenance_mode",
+                    "trial_days",
+                    "default_plan_id",
+                    "email_notifications",
+                    "sms_notifications",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "SettingResource"
+            },
+            "Subscription": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "tenant_id": {
+                        "type": "string"
+                    },
+                    "plan_id": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/SubscriptionStatus"
+                    },
+                    "starts_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "ends_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "tenant_id",
+                    "plan_id",
+                    "status",
+                    "starts_at",
+                    "ends_at",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "Subscription"
+            },
+            "SubscriptionStatus": {
+                "type": "string",
+                "enum": [
+                    "active",
+                    "cancelled",
+                    "expired"
+                ],
+                "title": "SubscriptionStatus"
+            },
+            "TenantResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "The tenant unique identifier (UUID).",
+                        "examples": [
+                            "550e8400-e29b-41d4-a716-446655440000"
+                        ]
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The business/organization name.",
+                        "examples": [
+                            "Green Mart Nigeria"
+                        ]
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "The tenant business email.",
+                        "examples": [
+                            "info@greenmart.ng"
+                        ]
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The tenant business phone.",
+                        "examples": [
+                            "+234 800 123 4567"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The tenant account status value.",
+                        "examples": [
+                            "active"
+                        ]
+                    },
+                    "status_label": {
+                        "type": "string",
+                        "description": "The human-readable status label.",
+                        "examples": [
+                            "Active"
+                        ]
+                    },
+                    "plan": {
+                        "anyOf": [
+                            {
+                                "description": "The assigned subscription plan.",
+                                "examples": [
+                                    {
+                                        "id": 1,
+                                        "name": "Basic Plan",
+                                        "price": 9.99,
+                                        "features": [
+                                            "unlimited_products"
+                                        ]
+                                    }
+                                ],
+                                "$ref": "#/components/schemas/PlanResource"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "trial_ends_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The trial period end date.",
+                        "examples": [
+                            "2026-06-16 23:59:59"
+                        ]
+                    },
+                    "domains": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "The tenant associated domains.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "The tenant creation timestamp.",
+                        "examples": [
+                            "2026-05-16 10:00:00"
+                        ]
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "description": "The tenant last update timestamp.",
+                        "examples": [
+                            "2026-05-16 14:30:00"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "phone",
+                    "status",
+                    "status_label",
+                    "trial_ends_at",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "TenantResource"
+            },
+            "TenantStatus": {
+                "type": "string",
+                "enum": [
+                    "active",
+                    "suspended",
+                    "trial",
+                    "inactive"
+                ],
+                "title": "TenantStatus"
+            },
+            "UpdatePlanRequest": {
+                "type": "object",
+                "description": "Class UpdatePlanRequest\n\nValidates subscription plan updates.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The updated plan name.",
+                        "example": "Enterprise Plan"
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "The updated monthly price.",
+                        "example": 99.99
+                    },
+                    "is_active": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "description": "Updated availability status.",
+                        "example": true
+                    },
+                    "features": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Updated feature list.",
+                        "example": [
+                            "unlimited_products",
+                            "white_label",
+                            "api_access"
+                        ],
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "products",
+                                "orders",
+                                "customers",
+                                "inventory",
+                                "analytics",
+                                "api_access",
+                                "white_label",
+                                "priority_support"
+                            ]
+                        }
+                    },
+                    "limits": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Updated usage limits.",
+                        "example": {
+                            "products": -1,
+                            "staff": 50,
+                            "storage_gb": 100
+                        },
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "title": "UpdatePlanRequest"
+            },
+            "UpdateSettingRequest": {
+                "type": "object",
+                "properties": {
+                    "site_name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "site_logo_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uri",
+                        "maxLength": 2048
+                    },
+                    "primary_color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$",
+                        "maxLength": 20
+                    },
+                    "accent_color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$",
+                        "maxLength": 20
+                    },
+                    "secondary_color": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$",
+                        "maxLength": 20
+                    },
+                    "support_email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 255
+                    },
+                    "currency": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3
+                    },
+                    "maintenance_mode": {
+                        "type": "boolean"
+                    },
+                    "trial_days": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 365
+                    },
+                    "default_plan_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "email_notifications": {
+                        "type": "boolean"
+                    },
+                    "sms_notifications": {
+                        "type": "boolean"
+                    }
+                },
+                "title": "UpdateSettingRequest"
+            },
+            "UpdateTenantRequest": {
+                "type": "object",
+                "description": "Class UpdateTenantRequest\n\nValidates tenant profile updates.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 20
+                    },
+                    "domain": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9-]+(\\.[a-z0-9.-]+)*$"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/TenantStatus"
+                    },
+                    "plan_id": {
+                        "type": "integer"
+                    },
+                    "data": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "title": "UpdateTenantRequest"
+            },
+            "UpdateUserRequest": {
+                "type": "object",
+                "description": "Class UpdateUserRequest\n\nValidates central user profile updates.\nAllows partial updates with optional password change.",
+                "properties": {
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The updated full name.",
+                        "example": "Jane Doe"
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The updated email address.",
+                        "example": "jane.doe@platform.com"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The updated phone number.",
+                        "example": "+234 800 333 4444"
+                    },
+                    "password": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The new password (requires confirmation).",
+                        "example": "NewSecureP@ss456!"
+                    },
+                    "role": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The updated role assignment.",
+                        "example": "billing_manager"
+                    },
+                    "is_active": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "description": "The updated account status.",
+                        "example": false
+                    },
+                    "password_confirmation": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "permissions": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Direct permissions to sync (replaces existing direct permissions).",
+                        "example": [
+                            "invoices.manage",
+                            "reports.view"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "title": "UpdateUserRequest"
+            },
+            "UserResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "The user unique identifier.",
+                        "examples": [
+                            1
+                        ]
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The user's full name.",
+                        "examples": [
+                            "Jane Smith"
+                        ]
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "The user's email address.",
+                        "examples": [
+                            "jane.smith@platform.com"
+                        ]
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The user's phone number.",
+                        "examples": [
+                            "+234 800 555 0199"
+                        ]
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Whether the user account is active.",
+                        "examples": [
+                            true
+                        ]
+                    },
+                    "email_verified_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The email verification timestamp.",
+                        "examples": [
+                            "2026-05-16 12:00:00"
+                        ]
+                    },
+                    "roles": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "The assigned role names.",
+                        "examples": [
+                            [
+                                "super_admin",
+                                "billing_manager"
+                            ]
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "permissions": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "The direct permission names.",
+                        "examples": [
+                            [
+                                "tenants.manage",
+                                "plans.create"
+                            ]
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "description": "The user creation timestamp.",
+                        "examples": [
+                            "2026-05-10 08:00:00"
+                        ]
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "description": "The user last update timestamp.",
+                        "examples": [
+                            "2026-05-16 15:20:00"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "phone",
+                    "is_active",
+                    "email_verified_at",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "UserResource"
+            },
+            "VerifyOtpRequest": {
+                "type": "object",
+                "description": "Class VerifyOtpRequest\r\n\r\nValidates OTP verification data.",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "The user's email.",
+                        "example": "user@platform.com"
+                    },
+                    "otp": {
+                        "type": "string",
+                        "description": "The 6-digit OTP code.",
+                        "example": "123456"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "The verification type.",
+                        "example": "email_verification"
+                    }
+                },
+                "required": [
+                    "email",
+                    "otp",
+                    "type"
+                ],
+                "title": "VerifyOtpRequest"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "AuthenticationException": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

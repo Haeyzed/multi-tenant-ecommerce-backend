@@ -1,17 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\Central;
 
 use App\DTOs\Central\PlanData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\CreatePlanRequest;
 use App\Http\Requests\Central\UpdatePlanRequest;
-use App\Http\Resources\Central\PlanResource;
 use App\Models\Central\Plan;
 use App\Services\Central\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Class PlanController
+ *
+ * Handles subscription plan management.
+ *
+ * @package App\Http\Controllers\Api\Central
+ */
 class PlanController extends Controller
 {
     /**
@@ -34,9 +42,10 @@ class PlanController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Plans retrieved successfully',
-            'data' => PlanResource::collection($plans),
+            'data' => PlanData::collect($plans->items()),
             'meta' => [
                 'current_page' => $plans->currentPage(),
+                'last_page' => $plans->lastPage(),
                 'per_page' => $plans->perPage(),
                 'total' => $plans->total(),
             ],
@@ -73,7 +82,7 @@ class PlanController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Plan created successfully',
-            'data' => new PlanResource($plan)
+            'data' => PlanData::from($plan),
         ], 201);
     }
 
@@ -88,7 +97,7 @@ class PlanController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Plan retrieved successfully',
-            'data' => new PlanResource($plan)
+            'data' => PlanData::from($plan),
         ]);
     }
 
@@ -107,7 +116,7 @@ class PlanController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Plan updated successfully',
-            'data' => new PlanResource($updatedPlan)
+            'data' => PlanData::from($updatedPlan),
         ]);
     }
 

@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Central;
 
-use App\Contracts\Central\AuthServiceInterface;
-use App\DTOs\Central\Auth\ChangePasswordDTO;
-use App\DTOs\Central\Auth\ForgotPasswordDTO;
-use App\DTOs\Central\Auth\LoginDTO;
-use App\DTOs\Central\Auth\ResetPasswordDTO;
-use App\DTOs\Central\Auth\VerifyOtpDTO;
 use App\Events\Central\PasswordResetOtpIssued;
 use App\Events\Central\VerificationOtpIssued;
 use App\Models\Central\User;
@@ -22,34 +16,34 @@ use Random\RandomException;
 /**
  * Class AuthService
  *
- * Handles all authentication business logic including login,
- * OTP verification, password reset, and session management.
+ * Contains the core business logic for user authentication, registration,
+ * and account recovery processes.
  *
  * @package App\Services\Central
  */
-readonly class AuthService implements AuthServiceInterface
+readonly class AuthService
 {
     /**
      * AuthService constructor.
      *
-     * @param AuthRepository $repository Authentication data repository
+     * @param AuthRepository $repository
      */
     public function __construct(
         private AuthRepository $repository
     ) {}
 
     /**
-     * Authenticate a user and create a token.
+     * Authenticate a user and issue a Sanctum token.
      *
-     * @param LoginDTO $dto Login credentials
-     * @return array<string, mixed> Authentication response with token
-     * @throws ValidationException When credentials are invalid
+     * @param array<string, mixed> $data
+     * @return array{user: User, token: string, token_type: string}
+     * @throws ValidationException
      */
-    public function login(LoginDTO $dto): array
+    public function login(array $data): array
     {
-        $user = $this->repository->findByEmail($dto->email);
+        $user = $this->repository->findByEmail($data['email']);
 
-        if (!$user || !Hash::check($dto->password, $user->password)) {
+        if (!$user || !Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials.'],
             ]);
@@ -67,8 +61,7 @@ readonly class AuthService implements AuthServiceInterface
             ]);
         }
 
-        // Revoke existing tokens if not remember
-        if (!$dto->remember) {
+        if (!($data['remember'] ?? false)) {
             $user->tokens()->delete();
         }
 
@@ -82,42 +75,41 @@ readonly class AuthService implements AuthServiceInterface
     }
 
     /**
-     * Send OTP for password reset.
+     * Initiate the password reset process by issuing an OTP.
      *
-     * @param ForgotPasswordDTO $dto Password reset request
-     * @return array<string, string> Success message
-     * @throws Exception When rate limited
+     * @param string $email
+     * @return array{message: string}
+     * @throws Exception
+     * @throws RandomException
      */
-    public function forgotPassword(ForgotPasswordDTO $dto): array
+    public function forgotPassword(string $email): array
     {
-        $user = $this->repository->findByEmail($dto->email);
+        $user = $this->repository->findByEmail($email);
 
         if (!$user) {
-            // Return success even if user not found (security)
             return ['message' => 'If the email exists, an OTP has been sent.'];
         }
 
-        if ($this->repository->isRateLimited($dto->email, 'password_reset')) {
+        if ($this->repository->isRateLimited($email, 'password_reset')) {
             throw new Exception('Please wait before requesting another OTP.');
         }
 
-        $otp = $this->repository->generateOtp($dto->email, 'password_reset');
-
+        $otp = $this->repository->generateOtp($email, 'password_reset');
         event(new PasswordResetOtpIssued($user, $otp));
 
         return ['message' => 'Password reset OTP has been sent to your email.'];
     }
 
     /**
-     * Verify OTP code.
+     * Verify a given OTP for either email verification or password reset.
      *
-     * @param VerifyOtpDTO $dto OTP verification data
-     * @return array<string, mixed> Verification result with token if applicable
-     * @throws ValidationException When OTP is invalid
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws ValidationException
      */
-    public function verifyOtp(VerifyOtpDTO $dto): array
+    public function verifyOtp(array $data): array
     {
-        $isValid = $this->repository->verifyOtp($dto->email, $dto->otp, $dto->type);
+        $isValid = $this->repository->verifyOtp($data['email'], $data['otp'], $data['type']);
 
         if (!$isValid) {
             throw ValidationException::withMessages([
@@ -125,7 +117,7 @@ readonly class AuthService implements AuthServiceInterface
             ]);
         }
 
-        $user = $this->repository->findByEmail($dto->email);
+        $user = $this->repository->findByEmail($data['email']);
 
         if (!$user) {
             throw ValidationException::withMessages([
@@ -133,8 +125,7 @@ readonly class AuthService implements AuthServiceInterface
             ]);
         }
 
-        // Handle email verification
-        if ($dto->type === 'email_verification') {
+        if ($data['type'] === 'email_verification') {
             $this->repository->markEmailVerified($user);
 
             return [
@@ -143,9 +134,8 @@ readonly class AuthService implements AuthServiceInterface
             ];
         }
 
-        // Handle password reset verification - return temp token
-        if ($dto->type === 'password_reset') {
-            $token = $this->repository->createPasswordResetToken($dto->email);
+        if ($data['type'] === 'password_reset') {
+            $token = $this->repository->createPasswordResetToken($data['email']);
 
             return [
                 'message' => 'OTP verified. You may now reset your password.',
@@ -157,21 +147,15 @@ readonly class AuthService implements AuthServiceInterface
     }
 
     /**
-     * Reset password with verified OTP.
+     * Complete the password reset process using a new password.
      *
-     * @param ResetPasswordDTO $dto Password reset data
-     * @return array<string, string> Success message
-     * @throws ValidationException When validation fails
+     * @param array<string, mixed> $data
+     * @return array{message: string}
+     * @throws ValidationException
      */
-    public function resetPassword(ResetPasswordDTO $dto): array
+    public function resetPassword(array $data): array
     {
-        if ($dto->password !== $dto->passwordConfirmation) {
-            throw ValidationException::withMessages([
-                'password' => ['Password confirmation does not match.'],
-            ]);
-        }
-
-        $user = $this->repository->findByEmail($dto->email);
+        $user = $this->repository->findByEmail($data['email']);
 
         if (! $user) {
             throw ValidationException::withMessages([
@@ -181,12 +165,12 @@ readonly class AuthService implements AuthServiceInterface
 
         $verified = false;
 
-        if ($dto->resetToken !== null) {
-            $verified = $this->repository->validatePasswordResetToken($dto->email, $dto->resetToken);
+        if (isset($data['reset_token'])) {
+            $verified = $this->repository->validatePasswordResetToken($data['email'], $data['reset_token']);
         }
 
-        if (! $verified && $dto->otp !== null) {
-            $verified = $this->repository->verifyOtp($dto->email, $dto->otp, 'password_reset');
+        if (! $verified && isset($data['otp'])) {
+            $verified = $this->repository->verifyOtp($data['email'], $data['otp'], 'password_reset');
         }
 
         if (! $verified) {
@@ -195,8 +179,8 @@ readonly class AuthService implements AuthServiceInterface
             ]);
         }
 
-        $this->repository->forgetPasswordResetToken($dto->email);
-        $this->repository->updatePassword($user, $dto->password);
+        $this->repository->forgetPasswordResetToken($data['email']);
+        $this->repository->updatePassword($user, $data['password']);
 
         $user->tokens()->delete();
 
@@ -204,40 +188,38 @@ readonly class AuthService implements AuthServiceInterface
     }
 
     /**
-     * Change the password for an authenticated user.
+     * Allow an authenticated user to change their existing password.
      *
-     * @param User $user The authenticated user
-     * @param ChangePasswordDTO $dto Password change data
-     * @return array<string, string> Success message
-     * @throws ValidationException When current password is wrong
+     * @param User $user
+     * @param array<string, mixed> $data
+     * @return array{message: string}
+     * @throws ValidationException
      */
-    public function changePassword(User $user, ChangePasswordDTO $dto): array
+    public function changePassword(User $user, array $data): array
     {
-        if (!Hash::check($dto->currentPassword, $user->password)) {
+        if (!Hash::check($data['current_password'], $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['Current password is incorrect.'],
             ]);
         }
 
-        if ($dto->newPassword !== $dto->newPasswordConfirmation) {
-            throw ValidationException::withMessages([
-                'new_password' => ['Password confirmation does not match.'],
-            ]);
-        }
-
-        $this->repository->updatePassword($user, $dto->newPassword);
+        $this->repository->updatePassword($user, $data['new_password']);
 
         // Revoke all tokens except current
-        $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+        if ($user->currentAccessToken()) {
+            $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+        } else {
+            $user->tokens()->delete();
+        }
 
         return ['message' => 'Password changed successfully.'];
     }
 
     /**
-     * Get an authenticated user profile.
+     * Retrieve the authenticated user's profile with relationships.
      *
-     * @param User $user The authenticated user
-     * @return User User profile with roles and permissions
+     * @param User $user
+     * @return User
      */
     public function me(User $user): User
     {
@@ -245,21 +227,23 @@ readonly class AuthService implements AuthServiceInterface
     }
 
     /**
-     * Log out user and revoke the token.
+     * Revoke the user's current access token.
      *
-     * @param User $user The authenticated user
-     * @return array<string, string> Success message
+     * @param User $user
+     * @return bool|null
      */
-    public function logout(User $user): array
+    public function logout(User $user): bool|null
     {
-        return $user->currentAccessToken()->delete();
+        return $user->currentAccessToken()?->delete();
     }
 
     /**
-     * Resend email verification OTP for an unverified account.
+     * Re-issue an email verification OTP.
      *
-     * @return array<string, string>
+     * @param string $email
+     * @return array{message: string}
      * @throws Exception
+     * @throws RandomException
      */
     public function resendVerificationOtp(string $email): array
     {
@@ -278,21 +262,21 @@ readonly class AuthService implements AuthServiceInterface
         }
 
         $otp = $this->repository->generateOtp($email, 'email_verification');
-
         event(new VerificationOtpIssued($user, $otp));
 
         return ['message' => 'Verification OTP has been sent to your email.'];
     }
 
     /**
-     * Register a new user and send verification OTP.
+     * Register a new user and dispatch a verification OTP.
      *
-     * @param array<string, mixed> $data Registration data
-     * @return array<string, mixed> Created user and OTP status
+     * @param array<string, mixed> $data
+     * @return User
      * @throws RandomException
      */
-    public function register(array $data): array
+    public function register(array $data): User
     {
+        /** @var User $user */
         $user = User::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -304,7 +288,6 @@ readonly class AuthService implements AuthServiceInterface
         $user->assignRole('viewer');
 
         $otp = $this->repository->generateOtp($user->email, 'email_verification');
-
         event(new VerificationOtpIssued($user, $otp));
 
         return $user;

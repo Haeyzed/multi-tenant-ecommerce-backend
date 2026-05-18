@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs\Tenant\Auth;
 
 /**
- * Class ChangePasswordDTO
+ * Class ChangePasswordData
  *
  * Data transfer object for authenticated password change.
  *
@@ -14,7 +14,7 @@ namespace App\DTOs\Tenant\Auth;
 readonly class ChangePasswordDTO
 {
     /**
-     * Create a new ChangePasswordDTO instance.
+     * Create a new ChangePasswordData instance.
      *
      * @param string $currentPassword The user's current password
      * @param string $newPassword The new password to set

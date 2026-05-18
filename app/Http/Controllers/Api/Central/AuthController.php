@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Central;
 
-use App\Contracts\Central\AuthServiceInterface;
-use App\DTOs\Central\Auth\ChangePasswordDTO;
-use App\DTOs\Central\Auth\ForgotPasswordDTO;
-use App\DTOs\Central\Auth\LoginDTO;
-use App\DTOs\Central\Auth\ResetPasswordDTO;
-use App\DTOs\Central\Auth\VerifyOtpDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\Auth\ChangePasswordRequest;
 use App\Http\Requests\Central\Auth\ForgotPasswordRequest;
@@ -19,14 +13,17 @@ use App\Http\Requests\Central\Auth\ResendVerificationOtpRequest;
 use App\Http\Requests\Central\Auth\ResetPasswordRequest;
 use App\Http\Requests\Central\Auth\VerifyOtpRequest;
 use App\Http\Resources\Central\UserResource;
+use App\Models\Central\User;
+use App\Services\Central\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Random\RandomException;
 
 /**
  * Class AuthController
  *
- * Handles authentication API endpoints for central platform users.
+ * Handles central API authentication endpoints.
  *
  * @package App\Http\Controllers\Api\Central
  */
@@ -35,17 +32,18 @@ class AuthController extends Controller
     /**
      * AuthController constructor.
      *
-     * @param AuthServiceInterface $authService Authentication service instance
+     * @param AuthService $authService
      */
     public function __construct(
-        private readonly AuthServiceInterface $authService
+        private readonly AuthService $authService
     ) {}
 
     /**
-     * Register a new user.
+     * Register a new user account.
      *
-     * @param RegisterRequest $request Validated registration data
-     * @return JsonResponse Created user with verification prompt (HTTP 201)
+     * @param RegisterRequest $request
+     * @return JsonResponse
+     * @throws RandomException
      */
     public function register(RegisterRequest $request): JsonResponse
     {
@@ -59,16 +57,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Authenticate user and issue token.
+     * Authenticate a user and generate a token.
      *
-     * @param LoginRequest $request Validated login credentials
-     * @return JsonResponse Authentication token and user data
+     * @param LoginRequest $request
+     * @return JsonResponse
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        $result = $this->authService->login(
-            LoginDTO::fromRequest($request->validated())
-        );
+        $result = $this->authService->login($request->validated());
 
         return response()->json([
             'success' => true,
@@ -82,16 +78,15 @@ class AuthController extends Controller
     }
 
     /**
-     * Request password reset OTP.
+     * Request a password reset OTP.
      *
-     * @param ForgotPasswordRequest $request Validated email
-     * @return JsonResponse OTP sent confirmation
+     * @param ForgotPasswordRequest $request
+     * @return JsonResponse
+     * @throws RandomException
      */
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        $result = $this->authService->forgotPassword(
-            ForgotPasswordDTO::fromRequest($request->validated())
-        );
+        $result = $this->authService->forgotPassword($request->validated('email'));
 
         return response()->json([
             'success' => true,
@@ -100,16 +95,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Verify OTP code.
+     * Verify an OTP for email verification or password reset.
      *
-     * @param VerifyOtpRequest $request Validated OTP data
-     * @return JsonResponse Verification result
+     * @param VerifyOtpRequest $request
+     * @return JsonResponse
      */
     public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
-        $result = $this->authService->verifyOtp(
-            VerifyOtpDTO::fromRequest($request->validated())
-        );
+        $result = $this->authService->verifyOtp($request->validated());
 
         return response()->json([
             'success' => true,
@@ -118,12 +111,12 @@ class AuthController extends Controller
         ]);
     }
 
-
     /**
-     * Resend email verification with verified OTP.
+     * Resend the email verification OTP.
      *
-     * @param ResendVerificationOtpRequest $request Validated reset data
-     * @return JsonResponse Password reset confirmation
+     * @param ResendVerificationOtpRequest $request
+     * @return JsonResponse
+     * @throws RandomException
      */
     public function resendVerificationOtp(ResendVerificationOtpRequest $request): JsonResponse
     {
@@ -136,16 +129,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Reset password with verified OTP.
+     * Reset the user's password using a valid token or OTP.
      *
-     * @param ResetPasswordRequest $request Validated reset data
-     * @return JsonResponse Password reset confirmation
+     * @param ResetPasswordRequest $request
+     * @return JsonResponse
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        $result = $this->authService->resetPassword(
-            ResetPasswordDTO::fromRequest($request->validated())
-        );
+        $result = $this->authService->resetPassword($request->validated());
 
         return response()->json([
             'success' => true,
@@ -154,17 +145,16 @@ class AuthController extends Controller
     }
 
     /**
-     * Change the password for an authenticated user.
+     * Change the password for the currently authenticated user.
      *
-     * @param ChangePasswordRequest $request Validated password change
-     * @return JsonResponse Password change confirmation
+     * @param ChangePasswordRequest $request
+     * @return JsonResponse
      */
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $result = $this->authService->changePassword(
-            Auth::user(),
-            ChangePasswordDTO::fromRequest($request->validated())
-        );
+        /** @var User $user */
+        $user = Auth::user();
+        $result = $this->authService->changePassword($user, $request->validated());
 
         return response()->json([
             'success' => true,
@@ -173,10 +163,10 @@ class AuthController extends Controller
     }
 
     /**
-     * Get an authenticated user profile.
+     * Get the authenticated user's profile.
      *
      * @param Request $request
-     * @return JsonResponse User profile with roles and permissions
+     * @return JsonResponse
      */
     public function me(Request $request): JsonResponse
     {
@@ -189,10 +179,10 @@ class AuthController extends Controller
     }
 
     /**
-     * Log out user and revoke the token.
+     * Log the user out (Invalidate the token).
      *
      * @param Request $request
-     * @return JsonResponse Logout confirmation
+     * @return JsonResponse
      */
     public function logout(Request $request): JsonResponse
     {

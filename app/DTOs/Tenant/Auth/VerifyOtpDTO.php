@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs\Tenant\Auth;
 
 /**
- * Class VerifyOtpDTO
+ * Class VerifyOtpData
  *
  * Data transfer object for OTP verification.
  *
@@ -14,7 +14,7 @@ namespace App\DTOs\Tenant\Auth;
 readonly class VerifyOtpDTO
 {
     /**
-     * Create a new VerifyOtpDTO instance.
+     * Create a new VerifyOtpData instance.
      *
      * @param string $email The user's email address
      * @param string $otp The one-time password code

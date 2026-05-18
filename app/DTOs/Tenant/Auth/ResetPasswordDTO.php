@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs\Tenant\Auth;
 
 /**
- * Class ResetPasswordDTO
+ * Class ResetPasswordData
  *
  * Data transfer object for password reset with OTP.
  *
@@ -14,7 +14,7 @@ namespace App\DTOs\Tenant\Auth;
 readonly class ResetPasswordDTO
 {
     /**
-     * Create a new ResetPasswordDTO instance.
+     * Create a new ResetPasswordData instance.
      *
      * @param string $email The user's email address
      * @param string $otp The verified OTP code
