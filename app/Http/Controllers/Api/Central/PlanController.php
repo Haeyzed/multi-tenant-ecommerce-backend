@@ -10,6 +10,7 @@ use App\Http\Requests\Central\CreatePlanRequest;
 use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Models\Central\Plan;
 use App\Services\Central\PlanService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,8 @@ use Illuminate\Http\Request;
  */
 class PlanController extends Controller
 {
+    use ApiResponse;
+
     /**
      * @param PlanService $planService
      */
@@ -39,17 +42,17 @@ class PlanController extends Controller
     {
         $plans = $this->planService->getAllPlans($request);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Plans retrieved successfully',
-            'data' => PlanData::collect($plans->items()),
-            'meta' => [
+        return $this->successResponse(
+            'Plans retrieved successfully',
+            PlanData::collect($plans->items()),
+            200,
+            [
                 'current_page' => $plans->currentPage(),
                 'last_page' => $plans->lastPage(),
                 'per_page' => $plans->perPage(),
                 'total' => $plans->total(),
-            ],
-        ]);
+            ]
+        );
     }
 
     /**
@@ -61,11 +64,7 @@ class PlanController extends Controller
     {
         $plans = $this->planService->getActivePlansForDropdown();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Active plans retrieved successfully',
-            'data' => $plans,
-        ]);
+        return $this->successResponse('Active plans retrieved successfully', $plans);
     }
 
     /**
@@ -79,11 +78,11 @@ class PlanController extends Controller
         $dto = PlanData::from($request->validated());
         $plan = $this->planService->createPlan($dto);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Plan created successfully',
-            'data' => PlanData::from($plan),
-        ], 201);
+        return $this->successResponse(
+            'Plan created successfully',
+            PlanData::from($plan),
+            201
+        );
     }
 
     /**
@@ -94,11 +93,10 @@ class PlanController extends Controller
      */
     public function show(Plan $plan): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'message' => 'Plan retrieved successfully',
-            'data' => PlanData::from($plan),
-        ]);
+        return $this->successResponse(
+            'Plan retrieved successfully',
+            PlanData::from($plan)
+        );
     }
 
     /**
@@ -113,11 +111,10 @@ class PlanController extends Controller
         $dto = PlanData::from([...$plan->toArray(), ...$request->validated()]);
         $updatedPlan = $this->planService->updatePlan($plan, $dto);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Plan updated successfully',
-            'data' => PlanData::from($updatedPlan),
-        ]);
+        return $this->successResponse(
+            'Plan updated successfully',
+            PlanData::from($updatedPlan)
+        );
     }
 
     /**
@@ -130,9 +127,6 @@ class PlanController extends Controller
     {
         $this->planService->deletePlan($plan);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Plan deleted successfully'
-        ]);
+        return $this->successResponse('Plan deleted successfully');
     }
 }

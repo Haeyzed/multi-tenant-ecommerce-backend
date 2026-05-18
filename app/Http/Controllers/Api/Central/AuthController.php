@@ -15,6 +15,7 @@ use App\Http\Requests\Central\Auth\VerifyOtpRequest;
 use App\Http\Resources\Central\UserResource;
 use App\Models\Central\User;
 use App\Services\Central\AuthService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +30,8 @@ use Random\RandomException;
  */
 class AuthController extends Controller
 {
+    use ApiResponse; // Inject the trait here
+
     /**
      * AuthController constructor.
      *
@@ -49,11 +52,11 @@ class AuthController extends Controller
     {
         $user = $this->authService->register($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Registration successful. Please verify your email with the OTP sent.',
-            'data' => new UserResource($user),
-        ], 201);
+        return $this->successResponse(
+            'Registration successful. Please verify your email with the OTP sent.',
+            new UserResource($user),
+            201
+        );
     }
 
     /**
@@ -66,14 +69,10 @@ class AuthController extends Controller
     {
         $result = $this->authService->login($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'data' => [
-                'user' => new UserResource($result['user']),
-                'token' => $result['token'],
-                'token_type' => $result['token_type'],
-            ],
+        return $this->successResponse('Login successful', [
+            'user' => new UserResource($result['user']),
+            'token' => $result['token'],
+            'token_type' => $result['token_type'],
         ]);
     }
 
@@ -88,10 +87,7 @@ class AuthController extends Controller
     {
         $result = $this->authService->forgotPassword($request->validated('email'));
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse($result['message']);
     }
 
     /**
@@ -104,11 +100,7 @@ class AuthController extends Controller
     {
         $result = $this->authService->verifyOtp($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-            'data' => $result,
-        ]);
+        return $this->successResponse($result['message'], $result);
     }
 
     /**
@@ -122,10 +114,7 @@ class AuthController extends Controller
     {
         $result = $this->authService->resendVerificationOtp($request->validated('email'));
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse($result['message']);
     }
 
     /**
@@ -138,10 +127,7 @@ class AuthController extends Controller
     {
         $result = $this->authService->resetPassword($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse($result['message']);
     }
 
     /**
@@ -156,10 +142,7 @@ class AuthController extends Controller
         $user = Auth::user();
         $result = $this->authService->changePassword($user, $request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => $result['message'],
-        ]);
+        return $this->successResponse($result['message']);
     }
 
     /**
@@ -172,10 +155,7 @@ class AuthController extends Controller
     {
         $user = $this->authService->me($request->user());
 
-        return response()->json([
-            'success' => true,
-            'data' => new UserResource($user),
-        ]);
+        return $this->successResponse('Profile retrieved successfully', new UserResource($user));
     }
 
     /**
@@ -188,9 +168,6 @@ class AuthController extends Controller
     {
         $this->authService->logout($request->user());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logged out successfully.',
-        ]);
+        return $this->successResponse('Logged out successfully.');
     }
 }

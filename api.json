@@ -1,13 +1,13 @@
 {
     "openapi": "3.1.0",
     "info": {
-        "title": "Laravel \u2014 Central API",
+        "title": "Softmax Technologies \u2014 Central API",
         "version": "0.0.1",
         "description": "Central platform API for tenant lifecycle, billing, and administration."
     },
     "servers": [
         {
-            "url": "http://localhost/api/v1/central",
+            "url": "http://multi-tenant-ecommerce-backend.test/api/v1/central",
             "description": "Local (central)"
         }
     ],
@@ -51,12 +51,16 @@
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -119,12 +123,16 @@
                                                 "token",
                                                 "token_type"
                                             ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -166,11 +174,19 @@
                                         },
                                         "message": {
                                             "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -260,12 +276,16 @@
                                                     ]
                                                 }
                                             ]
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -307,11 +327,19 @@
                                         },
                                         "message": {
                                             "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -354,11 +382,19 @@
                                         "message": {
                                             "type": "string",
                                             "const": "Password reset successfully. Please login with your new password."
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -391,11 +427,19 @@
                                         "message": {
                                             "type": "string",
                                             "const": "Logged out successfully."
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -425,13 +469,22 @@
                                         "success": {
                                             "type": "boolean"
                                         },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Profile retrieved successfully"
+                                        },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "data"
+                                        "message",
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -474,11 +527,19 @@
                                         "message": {
                                             "type": "string",
                                             "const": "Password changed successfully."
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -532,12 +593,16 @@
                                                     "label"
                                                 ]
                                             }
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -666,12 +731,16 @@
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/PlanData"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -721,12 +790,16 @@
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/PlanData"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -783,12 +856,16 @@
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/PlanData"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -848,12 +925,16 @@
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/PlanData"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
                                         "message",
-                                        "data"
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -901,11 +982,19 @@
                                         "message": {
                                             "type": "string",
                                             "const": "Plan deleted successfully"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        },
+                                        "meta": {
+                                            "type": "string"
                                         }
                                     },
                                     "required": [
                                         "success",
-                                        "message"
+                                        "message",
+                                        "data",
+                                        "meta"
                                     ]
                                 }
                             }
@@ -2761,7 +2850,7 @@
         "schemas": {
             "AssignPermissionsRequest": {
                 "type": "object",
-                "description": "Class AssignPermissionsRequest\r\n\r\nValidates direct permission assignments to users.",
+                "description": "Class AssignPermissionsRequest\n\nValidates direct permission assignments to users.",
                 "properties": {
                     "permissions": {
                         "type": "array",
@@ -2783,7 +2872,7 @@
             },
             "AssignRoleRequest": {
                 "type": "object",
-                "description": "Class AssignRoleRequest\r\n\r\nValidates role assignment to users.",
+                "description": "Class AssignRoleRequest\n\nValidates role assignment to users.",
                 "properties": {
                     "role": {
                         "type": "string",
@@ -2798,7 +2887,7 @@
             },
             "ChangePasswordRequest": {
                 "type": "object",
-                "description": "Class ChangePasswordRequest\r\n\r\nValidates authenticated password change.",
+                "description": "Class ChangePasswordRequest\n\nValidates authenticated password change.",
                 "properties": {
                     "current_password": {
                         "type": "string",
@@ -2823,7 +2912,7 @@
             },
             "CreatePlanRequest": {
                 "type": "object",
-                "description": "Class CreatePlanRequest\n\nValidates data for creating a new subscription plan.",
+                "description": "Class CreatePlanRequest\r\n\r\nValidates data for creating a new subscription plan.",
                 "properties": {
                     "name": {
                         "type": "string",
@@ -2883,7 +2972,7 @@
             },
             "CreateSubscriptionRequest": {
                 "type": "object",
-                "description": "Class CreateSubscriptionRequest\n\nValidates subscription creation with payment processing.",
+                "description": "Class CreateSubscriptionRequest\r\n\r\nValidates subscription creation with payment processing.",
                 "properties": {
                     "plan_id": {
                         "type": "integer",
@@ -3302,7 +3391,7 @@
             },
             "ForgotPasswordRequest": {
                 "type": "object",
-                "description": "Class ForgotPasswordRequest\r\n\r\nValidates password reset request.",
+                "description": "Class ForgotPasswordRequest\n\nValidates password reset request.",
                 "properties": {
                     "email": {
                         "type": "string",
@@ -3322,7 +3411,7 @@
             },
             "LoginRequest": {
                 "type": "object",
-                "description": "Class LoginRequest\r\n\r\nValidates user login credentials.",
+                "description": "Class LoginRequest\n\nValidates user login credentials.",
                 "properties": {
                     "email": {
                         "type": "string",
@@ -3492,7 +3581,7 @@
             },
             "ResendVerificationOtpRequest": {
                 "type": "object",
-                "description": "Class ResendVerificationOtpRequest\n\nValidates email resend with OTP.",
+                "description": "Class ResendVerificationOtpRequest\r\n\r\nValidates email resend with OTP.",
                 "properties": {
                     "email": {
                         "type": "string",
@@ -3810,7 +3899,7 @@
             },
             "UpdatePlanRequest": {
                 "type": "object",
-                "description": "Class UpdatePlanRequest\n\nValidates subscription plan updates.",
+                "description": "Class UpdatePlanRequest\r\n\r\nValidates subscription plan updates.",
                 "properties": {
                     "name": {
                         "type": "string",
@@ -4173,7 +4262,7 @@
             },
             "VerifyOtpRequest": {
                 "type": "object",
-                "description": "Class VerifyOtpRequest\r\n\r\nValidates OTP verification data.",
+                "description": "Class VerifyOtpRequest\n\nValidates OTP verification data.",
                 "properties": {
                     "email": {
                         "type": "string",

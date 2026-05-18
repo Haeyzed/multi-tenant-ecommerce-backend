@@ -46,6 +46,15 @@ class PlanData extends Data
             $properties['limits'] = is_array($decoded) ? $decoded : [];
         }
 
+        // Fix strict date casting issue from Spatie Data when receiving Laravel's ISO-8601 strings
+        if (isset($properties['created_at']) && is_string($properties['created_at'])) {
+            $properties['created_at'] = Carbon::parse($properties['created_at']);
+        }
+
+        if (isset($properties['updated_at']) && is_string($properties['updated_at'])) {
+            $properties['updated_at'] = Carbon::parse($properties['updated_at']);
+        }
+
         return $properties;
     }
 }
