@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers\Api\Central;
 
-use App\Contracts\Central\PlanServiceInterface;
-use App\DTOs\Central\PlanDTO;
+use App\DTOs\Central\PlanData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Central\CreatePlanRequest;
 use App\Http\Requests\Central\UpdatePlanRequest;
 use App\Http\Resources\Central\PlanResource;
 use App\Models\Central\Plan;
+use App\Services\Central\PlanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class PlanController extends Controller
 {
     /**
-     * @param PlanServiceInterface $planService
+     * @param PlanService $planService
      */
     public function __construct(
-        private readonly PlanServiceInterface $planService
+        private readonly PlanService $planService
     ) {}
 
     /**
@@ -29,10 +29,7 @@ class PlanController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $plans = $this->planService->getAllPlans(
-            $request->all(),
-            $request->integer('per_page', 15)
-        );
+        $plans = $this->planService->getAllPlans($request);
 
         return response()->json([
             'success' => true,
@@ -70,7 +67,7 @@ class PlanController extends Controller
      */
     public function store(CreatePlanRequest $request): JsonResponse
     {
-        $dto = PlanDTO::fromRequest($request->validated());
+        $dto = PlanData::from($request->validated());
         $plan = $this->planService->createPlan($dto);
 
         return response()->json([
@@ -104,7 +101,7 @@ class PlanController extends Controller
      */
     public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
-        $dto = PlanDTO::fromUpdateRequest($request->validated(), $plan);
+        $dto = PlanData::from([...$plan->toArray(), ...$request->validated()]);
         $updatedPlan = $this->planService->updatePlan($plan, $dto);
 
         return response()->json([

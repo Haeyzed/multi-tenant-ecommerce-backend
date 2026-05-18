@@ -2,15 +2,14 @@
 
 namespace App\Services\Central;
 
-use App\Contracts\Central\PlanServiceInterface;
-use App\DTOs\Central\PlanDTO;
+use App\DTOs\Central\PlanData;
 use App\Models\Central\Plan;
 use App\Repositories\Central\PlanRepository;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
-readonly class PlanService implements PlanServiceInterface
+readonly class PlanService
 {
     /**
      * PlanService constructor.
@@ -35,9 +34,9 @@ readonly class PlanService implements PlanServiceInterface
     /**
      * Get active plans for dropdown.
      *
-     * @return Collection
+     * @return Collection|\Illuminate\Support\Collection
      */
-    public function getActivePlansForDropdown(): Collection
+    public function getActivePlansForDropdown(): Collection|\Illuminate\Support\Collection
     {
         return $this->repository->getActivePlansForDropdown();
     }
@@ -45,24 +44,24 @@ readonly class PlanService implements PlanServiceInterface
     /**
      * Create a new plan.
      *
-     * @param PlanDTO $dto
+     * @param PlanData $planData
      * @return Plan
      */
-    public function createPlan(PlanDTO $dto): Plan
+    public function createPlan(PlanData $planData): Plan
     {
-        return $this->repository->create($dto->toArray());
+        return $this->repository->create($planData->toArray());
     }
 
     /**
      * Update an existing plan.
      *
      * @param Plan $plan
-     * @param PlanDTO $dto
+     * @param PlanData $planData
      * @return Plan
      */
-    public function updatePlan(Plan $plan, PlanDTO $dto): Plan
+    public function updatePlan(Plan $plan, PlanData $planData): Plan
     {
-        return $this->repository->update($plan, $dto->toArray());
+        return $this->repository->update($plan, $planData->toArray());
     }
 
     /**

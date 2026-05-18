@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Plan extends Model
 {
-    use HasFactory;
-
     /**
      * @var array<string>
      */
