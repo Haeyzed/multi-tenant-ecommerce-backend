@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Listeners\Central\Concerns;
 
+use App\Models\Central\Setting;
+
 trait BuildsCentralMailTemplateData
 {
     protected function platformName(): string
     {
-        return (string) config('app.name');
+        return Setting::platformName();
     }
 
     protected function centralLoginUrl(): string

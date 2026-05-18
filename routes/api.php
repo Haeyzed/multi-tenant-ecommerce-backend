@@ -98,7 +98,7 @@ Route::prefix('v1/central')->middleware(['auth:sanctum'])->group(function () {
     // Platform settings
     Route::middleware('permission:settings.view')->get('settings', [SettingController::class, 'show']);
     Route::middleware('permission:settings.update')->group(function () {
-        Route::put('settings', [SettingController::class, 'update']);
+        // Route::put('settings', [SettingController::class, 'update']);
         Route::patch('settings', [SettingController::class, 'update']);
         Route::post('settings/toggle-maintenance', [SettingController::class, 'toggleMaintenance']);
     });

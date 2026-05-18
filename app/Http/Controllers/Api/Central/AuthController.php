@@ -18,6 +18,7 @@ use App\Http\Requests\Central\Auth\RegisterRequest;
 use App\Http\Requests\Central\Auth\ResendVerificationOtpRequest;
 use App\Http\Requests\Central\Auth\ResetPasswordRequest;
 use App\Http\Requests\Central\Auth\VerifyOtpRequest;
+use App\Http\Resources\Central\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,16 +49,12 @@ class AuthController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $result = $this->authService->register($request->validated());
+        $user = $this->authService->register($request->validated());
 
         return response()->json([
             'success' => true,
-            'message' => $result['message'],
-            'data' => [
-                'id' => $result['user']->id,
-                'name' => $result['user']->name,
-                'email' => $result['user']->email,
-            ],
+            'message' => 'Registration successful. Please verify your email with the OTP sent.',
+            'data' => new UserResource($user),
         ], 201);
     }
 
@@ -76,7 +73,11 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'data' => $result,
+            'data' => [
+                'user' => new UserResource($result['user']),
+                'token' => $result['token'],
+                'token_type' => $result['token_type'],
+            ],
         ]);
     }
 
@@ -117,6 +118,13 @@ class AuthController extends Controller
         ]);
     }
 
+
+    /**
+     * Resend email verification with verified OTP.
+     *
+     * @param ResendVerificationOtpRequest $request Validated reset data
+     * @return JsonResponse Password reset confirmation
+     */
     public function resendVerificationOtp(ResendVerificationOtpRequest $request): JsonResponse
     {
         $result = $this->authService->resendVerificationOtp($request->validated('email'));
@@ -172,11 +180,11 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        $result = $this->authService->me($request->user());
+        $user = $this->authService->me($request->user());
 
         return response()->json([
             'success' => true,
-            'data' => $result,
+            'data' => new UserResource($user),
         ]);
     }
 
@@ -188,11 +196,11 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $result = $this->authService->logout($request->user());
+        $this->authService->logout($request->user());
 
         return response()->json([
             'success' => true,
-            'message' => $result['message'],
+            'message' => 'Logged out successfully.',
         ]);
     }
 }

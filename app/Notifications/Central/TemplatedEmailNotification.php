@@ -6,6 +6,8 @@ namespace App\Notifications\Central;
 
 use App\Models\Central\NotificationPreference;
 use App\Models\Central\NotificationTemplate;
+use App\Models\Central\Setting;
+use App\Notifications\Concerns\ResolvesTemplatedEmailBranding;
 use App\Support\Notifications\CentralNotificationTemplateCatalog;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +26,8 @@ use Illuminate\Notifications\Notification;
  */
 class TemplatedEmailNotification extends Notification
 {
+    use ResolvesTemplatedEmailBranding;
+
     /**
      * Default email subject when no template subject is provided.
      *
@@ -125,6 +129,13 @@ class TemplatedEmailNotification extends Notification
 
         $body = $this->parseVariables($template->body, $this->templateData);
 
+        $branding = $this->resolveMailBranding(
+            $template,
+            Setting::templateBrandingDefaults(),
+            self::DEFAULT_HEADER_BG,
+            self::DEFAULT_ACCENT_COLOR,
+        );
+
         return (new MailMessage)
             ->subject($subject)
             ->view('emails.notification', [
@@ -133,10 +144,7 @@ class TemplatedEmailNotification extends Notification
                 'greeting' => $this->resolveGreeting($template),
                 'closing' => $this->resolveClosing($template),
                 'signOff' => $this->resolveSignOff($template),
-                'logoUrl' => $template->logo_url ?? $this->templateData['logo_url'] ?? null,
-                'logoAlt' => $template->logo_alt ?? $this->templateData['logo_alt'] ?? 'Logo',
-                'headerBgColor' => $template->header_bg_color ?? $this->templateData['header_bg_color'] ?? self::DEFAULT_HEADER_BG,
-                'accentColor' => $template->accent_color ?? $this->templateData['accent_color'] ?? self::DEFAULT_ACCENT_COLOR,
+                ...$branding,
             ]);
     }
 

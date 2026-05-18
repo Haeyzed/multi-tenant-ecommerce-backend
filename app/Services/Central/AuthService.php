@@ -237,22 +237,11 @@ readonly class AuthService implements AuthServiceInterface
      * Get an authenticated user profile.
      *
      * @param User $user The authenticated user
-     * @return array<string, mixed> User profile with roles and permissions
+     * @return User User profile with roles and permissions
      */
-    public function me(User $user): array
+    public function me(User $user): User
     {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'email_verified_at' => $user->email_verified_at?->toDateTimeString(),
-            'is_active' => $user->is_active,
-            'roles' => $user->getRoleNames(),
-            'permissions' => $user->getPermissionNames(),
-            'direct_permissions' => $user->getDirectPermissions()->pluck('name'),
-            'created_at' => $user->created_at->toDateTimeString(),
-        ];
+        return $user->load(['roles', 'permissions']);
     }
 
     /**
@@ -263,9 +252,7 @@ readonly class AuthService implements AuthServiceInterface
      */
     public function logout(User $user): array
     {
-        $user->currentAccessToken()->delete();
-
-        return ['message' => 'Logged out successfully.'];
+        return $user->currentAccessToken()->delete();
     }
 
     /**
@@ -320,9 +307,6 @@ readonly class AuthService implements AuthServiceInterface
 
         event(new VerificationOtpIssued($user, $otp));
 
-        return [
-            'user' => $user,
-            'message' => 'Registration successful. Please verify your email with the OTP sent.',
-        ];
+        return $user;
     }
 }

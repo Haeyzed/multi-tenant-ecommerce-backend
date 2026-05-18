@@ -31,7 +31,7 @@ class PlanController extends Controller
     {
         $plans = $this->planService->getAllPlans(
             $request->all(),
-            $request->input('per_page', 15)
+            $request->integer('per_page', 15)
         );
 
         return response()->json([

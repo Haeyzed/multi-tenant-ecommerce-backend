@@ -10,7 +10,7 @@ class SettingSeeder extends Seeder
 {
     public function run(): void
     {
-        Setting::query()->firstOrCreate([], [
+        Setting::updateSettings([
             'site_name' => config('app.name', 'Multi-Tenant E-Commerce'),
             'support_email' => config('mail.from.address', 'support@example.com'),
             'currency' => 'USD',
@@ -19,6 +19,8 @@ class SettingSeeder extends Seeder
             'default_plan_id' => Plan::query()->where('is_active', true)->orderBy('id')->value('id'),
             'email_notifications' => true,
             'sms_notifications' => false,
+            'primary_color' => '#1e2b2e',
+            'accent_color' => '#73bc1c',
         ]);
     }
 }

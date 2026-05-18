@@ -17,6 +17,10 @@ class SettingResource extends JsonResource
         return [
             'id' => $this->id,
             'site_name' => $this->site_name,
+            'site_logo_url' => $this->site_logo_url,
+            'primary_color' => $this->primary_color,
+            'accent_color' => $this->accent_color,
+            'secondary_color' => $this->secondary_color,
             'support_email' => $this->support_email,
             'currency' => $this->currency,
             'maintenance_mode' => $this->maintenance_mode,

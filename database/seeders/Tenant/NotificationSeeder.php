@@ -64,7 +64,7 @@ class NotificationSeeder extends Seeder
         DB::table('notification_templates')->truncate();
         Schema::enableForeignKeyConstraints();
 
-        $defaults = $this->templateBrandingDefaults();
+        $defaults = Setting::templateBrandingDefaults();
         $storeName = Setting::storeName();
 
         $templates = [
@@ -166,19 +166,4 @@ class NotificationSeeder extends Seeder
         $this->command?->info('Seeded '.count($preferences).' tenant notification preferences.');
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function templateBrandingDefaults(): array
-    {
-        $colors = Setting::brandColors();
-
-        return [
-            'logo_url' => Setting::get('store_logo_url'),
-            'logo_alt' => Setting::storeName(),
-            'header_bg_color' => $colors['primary'] ?? '#1e2b2e',
-            'accent_color' => $colors['accent'] ?? '#73bc1c',
-            'is_active' => true,
-        ];
-    }
 }

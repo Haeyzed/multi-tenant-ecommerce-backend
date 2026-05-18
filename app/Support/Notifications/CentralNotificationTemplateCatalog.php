@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Notifications;
 
 use App\Models\Central\NotificationTemplate;
+use App\Models\Central\Setting;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -17,13 +18,7 @@ class CentralNotificationTemplateCatalog
      */
     public static function brandingDefaults(): array
     {
-        return [
-            'logo_url' => null,
-            'logo_alt' => config('app.name', 'Platform'),
-            'header_bg_color' => '#1e2b2e',
-            'accent_color' => '#73bc1c',
-            'is_active' => true,
-        ];
+        return Setting::templateBrandingDefaults();
     }
 
     /**
@@ -108,13 +103,15 @@ class CentralNotificationTemplateCatalog
 
         $created = 0;
 
+        $branding = Setting::templateBrandingDefaults();
+
         foreach (self::templates() as $template) {
             $record = NotificationTemplate::query()->updateOrCreate(
                 [
                     'event' => $template['event'],
                     'channel' => $template['channel'],
                 ],
-                $template
+                array_merge($template, $branding)
             );
 
             if ($record->wasRecentlyCreated) {

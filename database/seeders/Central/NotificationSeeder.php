@@ -2,7 +2,7 @@
 
 namespace Database\Seeders\Central;
 
-use App\Support\Notifications\CentralNotificationTemplateCatalog;
+use App\Models\Central\Setting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -70,7 +70,7 @@ class NotificationSeeder extends Seeder
         DB::table('notification_templates')->truncate();
         Schema::enableForeignKeyConstraints();
 
-        $defaults = $this->templateBrandingDefaults();
+        $defaults = Setting::templateBrandingDefaults();
 
         $templates = [
             // === EMAIL VERIFICATION OTP (register / resend) ===

@@ -221,6 +221,24 @@ class Setting extends Model
     }
 
     /**
+     * Default branding fields for notification_templates rows.
+     *
+     * @return array<string, mixed>
+     */
+    public static function templateBrandingDefaults(): array
+    {
+        $colors = self::brandColors();
+
+        return [
+            'logo_url' => self::resolvePublicLogoUrl(self::get('store_logo_url')),
+            'logo_alt' => self::storeName(),
+            'header_bg_color' => $colors['primary'] ?? '#1e2b2e',
+            'accent_color' => $colors['accent'] ?? '#73bc1c',
+            'is_active' => true,
+        ];
+    }
+
+    /**
      * Get currency configuration.
      *
      * @return array<string, mixed> Currency settings
@@ -318,5 +336,23 @@ class Setting extends Model
     public static function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY);
+    }
+
+    /**
+     * Email clients require an absolute URL for images.
+     */
+    public static function resolvePublicLogoUrl(mixed $url): ?string
+    {
+        if (! filled($url)) {
+            return null;
+        }
+
+        $url = (string) $url;
+
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            return $url;
+        }
+
+        return url($url);
     }
 }

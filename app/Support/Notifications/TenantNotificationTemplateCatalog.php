@@ -18,15 +18,7 @@ class TenantNotificationTemplateCatalog
      */
     public static function brandingDefaults(): array
     {
-        $colors = Setting::brandColors();
-
-        return [
-            'logo_url' => Setting::get('store_logo_url'),
-            'logo_alt' => Setting::storeName(),
-            'header_bg_color' => $colors['primary'] ?? '#1e2b2e',
-            'accent_color' => $colors['accent'] ?? '#73bc1c',
-            'is_active' => true,
-        ];
+        return Setting::templateBrandingDefaults();
     }
 
     /**
@@ -88,13 +80,15 @@ class TenantNotificationTemplateCatalog
 
         $created = 0;
 
+        $branding = Setting::templateBrandingDefaults();
+
         foreach (self::templates() as $template) {
             $record = NotificationTemplate::query()->updateOrCreate(
                 [
                     'event' => $template['event'],
                     'channel' => $template['channel'],
                 ],
-                $template
+                array_merge($template, $branding)
             );
 
             if ($record->wasRecentlyCreated) {

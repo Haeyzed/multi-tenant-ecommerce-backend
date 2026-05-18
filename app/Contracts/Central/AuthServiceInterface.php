@@ -80,9 +80,9 @@ interface AuthServiceInterface
      * Get an authenticated user profile.
      *
      * @param User $user
-     * @return array<string, mixed>
+     * @return User
      */
-    public function me(User $user): array;
+    public function me(User $user): User;
 
     /**
      * Logout user.

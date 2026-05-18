@@ -102,7 +102,7 @@ class AuthRepository
      * Update user password.
      *
      * @param User $user The user to update
-     * @param string $password The hashed password
+     * @param string $plainPassword The hashed password
      * @return void
      */
     public function updatePassword(User $user, string $plainPassword): void

@@ -8,6 +8,10 @@ readonly class SettingDTO
 {
     public function __construct(
         public ?string $siteName = null,
+        public ?string $siteLogoUrl = null,
+        public ?string $primaryColor = null,
+        public ?string $accentColor = null,
+        public ?string $secondaryColor = null,
         public ?string $supportEmail = null,
         public ?string $currency = null,
         public ?bool $maintenanceMode = null,
@@ -21,6 +25,10 @@ readonly class SettingDTO
     {
         return new self(
             siteName: $data['site_name'] ?? null,
+            siteLogoUrl: $data['site_logo_url'] ?? null,
+            primaryColor: $data['primary_color'] ?? null,
+            accentColor: $data['accent_color'] ?? null,
+            secondaryColor: $data['secondary_color'] ?? null,
             supportEmail: $data['support_email'] ?? null,
             currency: $data['currency'] ?? null,
             maintenanceMode: array_key_exists('maintenance_mode', $data)
@@ -43,6 +51,22 @@ readonly class SettingDTO
 
         if ($this->siteName !== null) {
             $data['site_name'] = $this->siteName;
+        }
+
+        if ($this->siteLogoUrl !== null) {
+            $data['site_logo_url'] = $this->siteLogoUrl;
+        }
+
+        if ($this->primaryColor !== null) {
+            $data['primary_color'] = $this->primaryColor;
+        }
+
+        if ($this->accentColor !== null) {
+            $data['accent_color'] = $this->accentColor;
+        }
+
+        if ($this->secondaryColor !== null) {
+            $data['secondary_color'] = $this->secondaryColor;
         }
 
         if ($this->supportEmail !== null) {
