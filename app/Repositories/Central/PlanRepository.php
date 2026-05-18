@@ -25,6 +25,7 @@ class PlanRepository
                 AllowedFilter::partial('name'),
             )
             ->allowedSorts('name', 'price', 'created_at')
+            ->defaultSort('-created_at')
             ->paginate(
                 $request->integer('per_page', 15),
                 page: $request->integer('page', 1)
